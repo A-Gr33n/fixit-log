@@ -1,109 +1,73 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
-
-const categories = [
-  "Plumbing",
-  "Electrical",
-  "Heating",
-  "Roof",
-  "Appliance",
-  "Structural",
-  "Other",
-];
 
 export default function NewRepairPage() {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Plumbing");
+  const [category, setCategory] = useState("");
   const [repairDate, setRepairDate] = useState("");
   const [cost, setCost] = useState("");
   const [notes, setNotes] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!title.trim() || !repairDate) {
-      setError("Please enter what was repaired and the repair date.");
+    setError("");
+
+    if (!title.trim()) {
+      setError("Please enter a repair title.");
+      return;
+    }
+
+    if (!repairDate) {
+      setError("Please enter the repair date.");
       return;
     }
 
     setSaving(true);
-    setError("");
-    setSuccess("");
 
     try {
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
 
-      console.log("CURRENT USER:", user);
-      console.log("USER ERROR:", userError);
-
-      if (userError) {
-        setError("We couldn't verify your account.");
-        setSaving(false);
-        return;
-      }
-
       if (!user) {
-        setError("Please sign in before adding a repair.");
+        setError("You need to be signed in to add a repair.");
         setSaving(false);
         return;
       }
 
-      const repairToInsert = {
-        user_id: user.id,
-        title: title.trim(),
-        category,
-        repair_date: repairDate,
-        cost: cost ? Number(cost) : null,
-        notes: notes.trim() || null,
-      };
-
-      console.log("REPAIR BEING INSERTED:", repairToInsert);
-
-      const {
-        data: insertedRepair,
-        error: insertError,
-      } = await supabase
+      const { error: insertError } = await supabase
         .from("repairs")
-        .insert(repairToInsert)
-        .select()
-        .single();
-
-      console.log("INSERTED REPAIR:", insertedRepair);
-      console.log("INSERT ERROR:", insertError);
+        .insert({
+          user_id: user.id,
+          title: title.trim(),
+          category: category.trim() || null,
+          repair_date: repairDate,
+          cost: cost === "" ? null : Number(cost),
+          notes: notes.trim() || null,
+          completed: false,
+        });
 
       if (insertError) {
-        setError(
-          `Couldn't save repair: ${insertError.message}`
-        );
+        console.error("Could not save repair:", insertError);
+        setError("Could not save the repair. Please try again.");
         setSaving(false);
         return;
       }
 
-      setSuccess(
-        "Repair saved successfully. Check Supabase to confirm the row."
-      );
-
-      setSaving(false);
+      router.push("/dashboard");
     } catch (error) {
-      console.error("REPAIR SAVE EXCEPTION:", error);
-
-      setError(
-        error?.message ||
-          "Something went wrong. Please try again."
-      );
-
+      console.error("Could not save repair:", error);
+      setError("Something went wrong. Please try again.");
       setSaving(false);
     }
   }
@@ -111,82 +75,104 @@ export default function NewRepairPage() {
   return (
     <main className="formPage">
       <div className="formContainer">
+
         <Link href="/repairs" className="backLink">
-          ← Back to repairs
+          ← Repairs
         </Link>
 
-        <div className="formHeader">
+        <header className="formHeader">
           <p className="eyebrow">YOUR HOME</p>
 
           <h1>Add repair</h1>
 
           <p>
-            Keep a record of repairs you've had done so
-            you can remember what happened and what it
-            cost.
+            Record a repair and keep the details in one place.
           </p>
-        </div>
+        </header>
 
         <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
-          <label className="field">
-            <span>What needed repairing?</span>
+          {/* Repair title */}
+          <div className="field">
+            <label htmlFor="title">
+              Repair title
+            </label>
 
             <input
+              id="title"
               type="text"
               value={title}
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              placeholder="e.g. Leaking kitchen tap"
-              autoFocus
+              placeholder="e.g. Boiler repair"
+              required
             />
-          </label>
+          </div>
 
+          {/* Category */}
           <div className="field">
-            <span>Category</span>
+            <label htmlFor="category">
+              Category
+            </label>
 
             <div className="categoryGrid">
-              {categories.map((item) => (
+              {[
+                "Heating",
+                "Plumbing",
+                "Electrical",
+                "Appliance",
+                "Roofing",
+                "Other",
+              ].map((option) => (
                 <button
-                  key={item}
+                  key={option}
                   type="button"
                   className={`categoryOption ${
-                    category === item
-                      ? "selected"
-                      : ""
+                    category === option ? "selected" : ""
                   }`}
-                  onClick={() => setCategory(item)}
+                  onClick={() =>
+                    setCategory(
+                      category === option ? "" : option
+                    )
+                  }
                 >
-                  {item}
+                  {option}
                 </button>
               ))}
             </div>
           </div>
 
-          <label className="field">
-            <span>When was it repaired?</span>
+          {/* Repair date */}
+          <div className="field">
+            <label htmlFor="repairDate">
+              Repair date
+            </label>
 
             <input
+              id="repairDate"
               type="date"
               value={repairDate}
               onChange={(event) =>
                 setRepairDate(event.target.value)
               }
+              required
             />
-          </label>
+          </div>
 
-          <label className="field">
-            <span>
-              Cost <small>(optional)</small>
-            </span>
+          {/* Cost */}
+          <div className="field">
+            <label htmlFor="cost">
+              Cost (£)
+            </label>
 
             <div className="costInput">
               <span>£</span>
 
               <input
+                id="cost"
                 type="number"
                 min="0"
                 step="0.01"
@@ -197,45 +183,51 @@ export default function NewRepairPage() {
                 placeholder="0.00"
               />
             </div>
-          </label>
+          </div>
 
-          <label className="field">
-            <span>
-              Notes <small>(optional)</small>
-            </span>
+          {/* Notes */}
+          <div className="field">
+            <label htmlFor="notes">
+              Notes
+            </label>
 
             <textarea
+              id="notes"
+              rows="5"
               value={notes}
               onChange={(event) =>
                 setNotes(event.target.value)
               }
-              placeholder="Anything else you want to remember..."
-              rows="4"
+              placeholder="Add any useful details about the repair..."
             />
-          </label>
+          </div>
 
+          {/* Error */}
           {error && (
-            <p className="formError">{error}</p>
+            <p className="formError">
+              {error}
+            </p>
           )}
 
-          {success && (
-            <p className="formSuccess">{success}</p>
-          )}
+          {/* Buttons */}
+          <div className="formActions">
+            <button
+              type="submit"
+              className="primaryButton"
+              disabled={saving}
+            >
+              {saving ? "Saving repair..." : "Save repair"}
+            </button>
 
-          <button
-            type="submit"
-            className="primaryButton"
-            disabled={
-              !title.trim() ||
-              !repairDate ||
-              saving
-            }
-          >
-            {saving
-              ? "Saving..."
-              : "Save repair →"}
-          </button>
+            <Link
+              href="/repairs"
+              className="secondaryButton"
+            >
+              Cancel
+            </Link>
+          </div>
         </form>
+
       </div>
     </main>
   );

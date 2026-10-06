@@ -1,28 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../../lib/supabase";
 
-const categories = [
-  "Plumbing",
-  "Electrical",
-  "Heating",
-  "Roof",
-  "Appliance",
-  "Structural",
-  "Other",
-];
-
 export default function EditRepairPage() {
-  const router = useRouter();
   const params = useParams();
+  const router = useRouter();
 
-  const id = params.id;
+  const repairId = params.id;
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Plumbing");
+  const [category, setCategory] = useState("");
   const [repairDate, setRepairDate] = useState("");
   const [cost, setCost] = useState("");
   const [notes, setNotes] = useState("");
@@ -37,134 +27,103 @@ export default function EditRepairPage() {
       try {
         const {
           data: { user },
-          error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError || !user) {
-          router.push("/");
+        if (!user) {
+          setError("You need to be signed in to edit a repair.");
+          setLoading(false);
           return;
         }
 
-        const { data, error: loadError } = await supabase
+        const { data, error } = await supabase
           .from("repairs")
           .select("*")
-          .eq("id", id)
+          .eq("id", repairId)
           .eq("user_id", user.id)
           .single();
 
-        if (loadError) {
-          console.error(
-            "Could not load repair:",
-            loadError
-          );
-
-          setError(
-            "We couldn't find this repair."
-          );
-
+        if (error) {
+          console.error("Could not load repair:", error);
+          setError("Could not find this repair.");
           setLoading(false);
           return;
         }
 
         setTitle(data.title || "");
-        setCategory(data.category || "Plumbing");
+        setCategory(data.category || "");
         setRepairDate(data.repair_date || "");
-
         setCost(
-          data.cost !== null &&
-          data.cost !== undefined
+          data.cost !== null && data.cost !== undefined
             ? String(data.cost)
             : ""
         );
-
         setNotes(data.notes || "");
         setCompleted(Boolean(data.completed));
       } catch (error) {
-        console.error(
-          "Could not load repair:",
-          error
-        );
-
-        setError(
-          "Something went wrong loading this repair."
-        );
+        console.error("Could not load repair:", error);
+        setError("Something went wrong while loading the repair.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (id) {
+    if (repairId) {
       loadRepair();
     }
-  }, [id, router]);
+  }, [repairId]);
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!title.trim() || !repairDate) {
-      setError(
-        "Please enter a repair title and date."
-      );
+    setError("");
+
+    if (!title.trim()) {
+      setError("Please enter a repair title.");
+      return;
+    }
+
+    if (!repairDate) {
+      setError("Please enter the repair date.");
       return;
     }
 
     setSaving(true);
-    setError("");
 
     try {
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) {
-        setError(
-          "Please sign in before editing this repair."
-        );
+      if (!user) {
+        setError("You need to be signed in to save this repair.");
         setSaving(false);
         return;
       }
 
-      const updates = {
-        title: title.trim(),
-        category,
-        repair_date: repairDate,
-        cost: cost ? Number(cost) : null,
-        notes: notes.trim() || null,
-        completed,
-      };
-
       const { error: updateError } = await supabase
         .from("repairs")
-        .update(updates)
-        .eq("id", id)
+        .update({
+          title: title.trim(),
+          category: category.trim() || null,
+          repair_date: repairDate,
+          cost: cost === "" ? null : Number(cost),
+          notes: notes.trim() || null,
+          completed,
+        })
+        .eq("id", repairId)
         .eq("user_id", user.id);
 
       if (updateError) {
-        console.error(
-          "Could not update repair:",
-          updateError
-        );
-
-        setError(
-          "We couldn't save your changes. Please try again."
-        );
-
+        console.error("Could not update repair:", updateError);
+        setError("Could not save the repair. Please try again.");
         setSaving(false);
         return;
       }
 
       router.push("/repairs");
     } catch (error) {
-      console.error(
-        "Could not update repair:",
-        error
-      );
-
-      setError(
-        "Something went wrong. Please try again."
-      );
-
+      console.error("Could not update repair:", error);
+      setError("Something went wrong. Please try again.");
       setSaving(false);
     }
   }
@@ -173,8 +132,22 @@ export default function EditRepairPage() {
     return (
       <main className="formPage">
         <div className="formContainer">
-          <div className="maintenanceEmptyState">
-            Loading repair...
+          <Link href="/repairs" className="backLink">
+            ← Repairs
+          </Link>
+
+          <div className="formHeader">
+            <p className="eyebrow">YOUR HOME</p>
+
+            <h1>Edit repair</h1>
+
+            <p>
+              Update the details of your repair.
+            </p>
+          </div>
+
+          <div className="maintenanceForm">
+            <p>Loading repair...</p>
           </div>
         </div>
       </main>
@@ -184,86 +157,104 @@ export default function EditRepairPage() {
   return (
     <main className="formPage">
       <div className="formContainer">
-        <Link
-          href="/repairs"
-          className="backLink"
-        >
-          ← Back to repairs
+
+        <Link href="/repairs" className="backLink">
+          ← Repairs
         </Link>
 
-        <div className="formHeader">
+        <header className="formHeader">
           <p className="eyebrow">YOUR HOME</p>
 
           <h1>Edit repair</h1>
 
           <p>
-            Correct or update the details for this
-            repair.
+            Update the details of your repair.
           </p>
-        </div>
+        </header>
 
         <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
-          <label className="field">
-            <span>What needed repairing?</span>
+          {/* Repair title */}
+          <div className="field">
+            <label htmlFor="title">
+              Repair title
+            </label>
 
             <input
+              id="title"
               type="text"
               value={title}
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              placeholder="e.g. Leaking kitchen tap"
-              autoFocus
+              placeholder="e.g. Boiler repair"
+              required
             />
-          </label>
+          </div>
 
+          {/* Category */}
           <div className="field">
-            <span>Category</span>
+            <label htmlFor="category">
+              Category
+            </label>
 
             <div className="categoryGrid">
-              {categories.map((item) => (
+              {[
+                "Heating",
+                "Plumbing",
+                "Electrical",
+                "Appliance",
+                "Roofing",
+                "Other",
+              ].map((option) => (
                 <button
-                  key={item}
+                  key={option}
                   type="button"
                   className={`categoryOption ${
-                    category === item
-                      ? "selected"
-                      : ""
+                    category === option ? "selected" : ""
                   }`}
                   onClick={() =>
-                    setCategory(item)
+                    setCategory(
+                      category === option ? "" : option
+                    )
                   }
                 >
-                  {item}
+                  {option}
                 </button>
               ))}
             </div>
           </div>
 
-          <label className="field">
-            <span>When was it repaired?</span>
+          {/* Repair date */}
+          <div className="field">
+            <label htmlFor="repairDate">
+              Repair date
+            </label>
 
             <input
+              id="repairDate"
               type="date"
               value={repairDate}
               onChange={(event) =>
                 setRepairDate(event.target.value)
               }
+              required
             />
-          </label>
+          </div>
 
-          <label className="field">
-            <span>
-              Cost <small>(optional)</small>
-            </span>
+          {/* Cost */}
+          <div className="field">
+            <label htmlFor="cost">
+              Cost (£)
+            </label>
 
             <div className="costInput">
               <span>£</span>
 
               <input
+                id="cost"
                 type="number"
                 min="0"
                 step="0.01"
@@ -274,25 +265,30 @@ export default function EditRepairPage() {
                 placeholder="0.00"
               />
             </div>
-          </label>
+          </div>
 
-          <label className="field">
-            <span>
-              Notes <small>(optional)</small>
-            </span>
+          {/* Notes */}
+          <div className="field">
+            <label htmlFor="notes">
+              Notes
+            </label>
 
             <textarea
+              id="notes"
+              rows="5"
               value={notes}
               onChange={(event) =>
                 setNotes(event.target.value)
               }
-              placeholder="Anything else you want to remember..."
-              rows="4"
+              placeholder="Add any useful details about the repair..."
             />
-          </label>
+          </div>
 
+          {/* Completion status */}
           <div className="field">
-            <span>Status</span>
+            <label>
+              Repair status
+            </label>
 
             <button
               type="button"
@@ -309,26 +305,32 @@ export default function EditRepairPage() {
             </button>
           </div>
 
+          {/* Error */}
           {error && (
             <p className="formError">
               {error}
             </p>
           )}
 
-          <button
-            type="submit"
-            className="primaryButton"
-            disabled={
-              !title.trim() ||
-              !repairDate ||
-              saving
-            }
-          >
-            {saving
-              ? "Saving changes..."
-              : "Save changes →"}
-          </button>
+          {/* Buttons */}
+          <div className="formActions">
+            <button
+              type="submit"
+              className="primaryButton"
+              disabled={saving}
+            >
+              {saving ? "Saving changes..." : "Save changes"}
+            </button>
+
+            <Link
+              href="/repairs"
+              className="secondaryButton"
+            >
+              Cancel
+            </Link>
+          </div>
         </form>
+
       </div>
     </main>
   );

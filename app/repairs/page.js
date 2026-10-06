@@ -1,211 +1,361 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase";
 
-export default function NewRepairPage() {
-  const router = useRouter();
+export default function RepairsPage() {
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [repairDate, setRepairDate] = useState("");
-  const [cost, setCost] = useState("");
-  const [notes, setNotes] = useState("");
-  const [completed, setCompleted] = useState(false);
-
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    setError("");
-    setLoading(true);
-
+  async function loadRepairs() {
     try {
-      // Get the currently signed-in user
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) {
-        console.error("Could not get current user:", userError);
-        setError("We couldn't verify your account. Please sign in again.");
-        setLoading(false);
-        return;
-      }
-
       if (!user) {
-        setError("You need to be signed in to add a repair.");
         setLoading(false);
         return;
       }
 
-      // Save the repair
-      const { error: insertError } = await supabase
+      const { data, error } = await supabase
         .from("repairs")
-        .insert({
-          user_id: user.id,
-          title: title.trim(),
-          category: category.trim(),
-          repair_date: repairDate,
-          cost: cost === "" ? null : Number(cost),
-          notes: notes.trim() || null,
-          completed,
-        });
+        .select("*")
+        .eq("user_id", user.id)
+        .order("repair_date", { ascending: false });
 
-      if (insertError) {
-        console.error("Could not save repair:", insertError);
-        setError(insertError.message);
-        setLoading(false);
+      if (error) {
+        console.error("Could not load repairs:", error);
         return;
       }
 
-      // Repair saved successfully.
-      // Take the user straight back to the dashboard.
-      router.push("/dashboard");
+      setRepairs(data || []);
     } catch (error) {
-      console.error("Could not save repair:", error);
-
-      setError(
-        "Something went wrong while saving the repair. Please try again."
-      );
-
+      console.error("Could not load repairs:", error);
+    } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    loadRepairs();
+  }, []);
+
+  async function toggleCompleted(repair) {
+    setUpdatingId(repair.id);
+
+    const { error } = await supabase
+      .from("repairs")
+      .update({ completed: !repair.completed })
+      .eq("id", repair.id)
+      .eq("user_id", repair.user_id);
+
+    if (error) {
+      console.error("Could not update repair:", error);
+      setUpdatingId(null);
+      return;
+    }
+
+    setRepairs((current) =>
+      current.map((item) =>
+        item.id === repair.id
+          ? { ...item, completed: !repair.completed }
+          : item
+      )
+    );
+
+    setUpdatingId(null);
+  }
+
+  async function deleteRepair(repair) {
+    const confirmed = window.confirm(
+      `Remove "${repair.title}"? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setUpdatingId(repair.id);
+
+    const { error } = await supabase
+      .from("repairs")
+      .delete()
+      .eq("id", repair.id)
+      .eq("user_id", repair.user_id);
+
+    if (error) {
+      console.error("Could not delete repair:", error);
+      setUpdatingId(null);
+      return;
+    }
+
+    setRepairs((current) =>
+      current.filter((item) => item.id !== repair.id)
+    );
+
+    setUpdatingId(null);
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "No date";
+
+    return new Date(`${dateString}T00:00:00`).toLocaleDateString(
+      "en-GB",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  }
+
+  function formatCost(cost) {
+    if (cost === null || cost === undefined || cost === "") {
+      return "Not recorded";
+    }
+
+    return `£${Number(cost).toFixed(2)}`;
+  }
+
   return (
-    <main className="maintenancePage">
-      <div className="maintenanceContainer">
-        <header className="maintenancePageHeader">
-          <div>
-            <Link href="/repairs" className="backLink">
-              ← Repairs
-            </Link>
+    <main className="repairsPage">
+      <div className="repairsContainer">
 
-            <p className="eyebrow">YOUR HOME</p>
+        {/* Header */}
+        <header className="repairsHeader">
+          <Link href="/dashboard" className="repairsBackLink">
+            ← Dashboard
+          </Link>
 
-            <h1>Add repair</h1>
+          <div className="repairsHeaderContent">
+            <p className="repairsEyebrow">YOUR HOME</p>
 
-            <p className="maintenanceSubtitle">
-              Record a repair and keep the details in one place.
+            <h1>Repairs</h1>
+
+            <p className="repairsSubtitle">
+              Keep a record of repairs, costs and work completed
+              on your home.
             </p>
           </div>
+
+          <Link
+            href="/repairs/new"
+            className="repairsAddButton"
+          >
+            <span className="repairsAddIcon">+</span>
+            Add repair
+          </Link>
         </header>
 
-        <form
-          className="onboardingForm"
-          onSubmit={handleSubmit}
-        >
-          <label className="field">
-            <span>Repair title</span>
+        {/* Main content */}
+        <section className="repairsContent">
 
-            <input
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="e.g. Boiler repair"
-              required
-            />
-          </label>
+          {loading ? (
+            <div className="repairsEmpty">
+              <div className="repairsEmptyIcon">🔧</div>
 
-          <label className="field">
-            <span>Category</span>
+              <h2>Loading repairs...</h2>
 
-            <input
-              type="text"
-              value={category}
-              onChange={(event) =>
-                setCategory(event.target.value)
-              }
-              placeholder="e.g. Heating"
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Repair date</span>
-
-            <input
-              type="date"
-              value={repairDate}
-              onChange={(event) =>
-                setRepairDate(event.target.value)
-              }
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Cost (£)</span>
-
-            <input
-              type="number"
-              value={cost}
-              onChange={(event) =>
-                setCost(event.target.value)
-              }
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-          </label>
-
-          <label className="field">
-            <span>Notes</span>
-
-            <textarea
-              value={notes}
-              onChange={(event) =>
-                setNotes(event.target.value)
-              }
-              placeholder="Add any useful details about the repair..."
-              rows={5}
-            />
-          </label>
-
-          <label className="field">
-            <span>Repair status</span>
-
-            <div className="checkboxRow">
-              <input
-                type="checkbox"
-                checked={completed}
-                onChange={(event) =>
-                  setCompleted(event.target.checked)
-                }
-              />
-
-              <span>Mark this repair as completed</span>
+              <p>
+                Your repair records will appear here.
+              </p>
             </div>
-          </label>
+          ) : repairs.length === 0 ? (
+            <div className="repairsEmpty">
+              <div className="repairsEmptyIcon">🔧</div>
 
-          {error && (
-            <p className="formError">
-              {error}
-            </p>
+              <h2>No repairs logged yet</h2>
+
+              <p>
+                Add your first repair to keep a record of work
+                carried out on your home.
+              </p>
+
+              <Link
+                href="/repairs/new"
+                className="repairsEmptyButton"
+              >
+                Add your first repair
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Section heading */}
+              <div className="repairsSectionHeader">
+                <div>
+                  <p className="repairsEyebrow">
+                    REPAIR HISTORY
+                  </p>
+
+                  <h2>Your repairs</h2>
+                </div>
+
+                <span className="repairsCount">
+                  {repairs.length}{" "}
+                  {repairs.length === 1 ? "repair" : "repairs"}
+                </span>
+              </div>
+
+              {/* Repair cards */}
+              <div className="repairsList">
+                {repairs.map((repair) => (
+                  <article
+                    className={`repairCard ${
+                      repair.completed
+                        ? "repairCardCompleted"
+                        : ""
+                    }`}
+                    key={repair.id}
+                  >
+                    {/* Card top */}
+                    <div className="repairCardTop">
+
+                      <div className="repairIcon">
+                        🔧
+                      </div>
+
+                      <div className="repairMainInfo">
+                        <div className="repairTitleRow">
+                          <h3>{repair.title}</h3>
+
+                          <span
+                            className={`repairStatus ${
+                              repair.completed
+                                ? "repairStatusCompleted"
+                                : "repairStatusOpen"
+                            }`}
+                          >
+                            {repair.completed
+                              ? "Completed"
+                              : "Open"}
+                          </span>
+                        </div>
+
+                        <p className="repairMeta">
+                          {repair.category || "Repair"}
+                          <span>•</span>
+                          {formatDate(repair.repair_date)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="repairDetails">
+
+                      <div className="repairDetail">
+                        <span className="repairDetailLabel">
+                          STATUS
+                        </span>
+
+                        <strong>
+                          {repair.completed
+                            ? "Completed"
+                            : "Open"}
+                        </strong>
+                      </div>
+
+                      <div className="repairDetail">
+                        <span className="repairDetailLabel">
+                          COST
+                        </span>
+
+                        <strong>
+                          {formatCost(repair.cost)}
+                        </strong>
+                      </div>
+
+                      <div className="repairDetail">
+                        <span className="repairDetailLabel">
+                          DATE
+                        </span>
+
+                        <strong>
+                          {formatDate(repair.repair_date)}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    {repair.notes && (
+                      <div className="repairNotes">
+                        <span className="repairDetailLabel">
+                          NOTES
+                        </span>
+
+                        <p>{repair.notes}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="repairActions">
+
+                      <Link
+                        href={`/repairs/${repair.id}/edit`}
+                        className="repairEditButton"
+                      >
+                        Edit
+                      </Link>
+
+                      <button
+                        type="button"
+                        className="repairCompleteButton"
+                        onClick={() =>
+                          toggleCompleted(repair)
+                        }
+                        disabled={
+                          updatingId === repair.id
+                        }
+                      >
+                        {updatingId === repair.id
+                          ? "Updating..."
+                          : repair.completed
+                          ? "Mark as open"
+                          : "Mark complete"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="repairDeleteButton"
+                        onClick={() =>
+                          deleteRepair(repair)
+                        }
+                        disabled={
+                          updatingId === repair.id
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
           )}
+        </section>
 
-          <button
-            type="submit"
-            className="primaryButton"
-            disabled={loading}
-          >
-            {loading
-              ? "Saving repair..."
-              : "Save repair →"}
-          </button>
-        </form>
-
-        <p className="onboardingFooter">
-          <Link href="/repairs" className="textLink">
-            ← Back to repairs
+        {/* Bottom navigation */}
+        <nav className="repairsNavigation">
+          <Link href="/dashboard">
+            Dashboard
           </Link>
-        </p>
+
+          <Link href="/maintenance">
+            Maintenance
+          </Link>
+
+          <Link
+            href="/repairs"
+            className="repairsNavigationActive"
+          >
+            Repairs
+          </Link>
+
+          <Link href="/costs">
+            Costs
+          </Link>
+        </nav>
+
       </div>
     </main>
   );
