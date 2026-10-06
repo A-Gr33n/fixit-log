@@ -1,250 +1,304 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase";
 
+export default function RepairsPage() {
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
 
-export default function SignupPage() {
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    console.log("========== SIGNUP BUTTON CLICKED ==========");
-
-    setError("");
-    setSuccess("");
-
-    const cleanEmail = email.trim();
-
-    if (!cleanEmail) {
-      setError("Please enter your email address.");
-      return;
-    }
-
-    if (!password) {
-      setError("Please enter a password.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Your password must be at least 6 characters.");
-      return;
-    }
-
-    if (!confirmPassword) {
-      setError("Please confirm your password.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Your passwords don't match.");
-      return;
-    }
-
-    setLoading(true);
-
-    console.log("Sending signup request to Supabase...");
-
+  async function loadRepairs() {
     try {
       const {
-        data,
-        error: signUpError,
-      } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-      });
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (signUpError) {
-        console.error("========== SIGNUP ERROR ==========");
-        console.error("Message:", signUpError.message);
-        console.error("Status:", signUpError.status);
-        console.error("Code:", signUpError.code);
-        console.error("===================================");
-
-      if (signUpError.code === "user_already_exists") {
-  setError(
-    "An account with this email already exists. Please sign in instead."
-  );
-} else {
-  setError(
-    signUpError.message ||
-      "We couldn't create your account. Please try again."
-  );
-}
-
+      if (!user) {
         setLoading(false);
         return;
       }
 
-      console.log("========== SIGNUP SUCCESS ==========");
-      console.log("User:", data.user);
-      console.log("Session:", data.session);
-      console.log("====================================");
+      const { data, error } = await supabase
+        .from("repairs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("repair_date", { ascending: false });
 
-      if (!data.user) {
-        setError(
-          "Supabase did not return a user. Please try again."
-        );
-
-        setLoading(false);
+      if (error) {
+        console.error("Could not load repairs:", error);
         return;
       }
 
-      if (!data.session) {
-        setSuccess(
-          "Account created successfully. Please check your email to confirm your account, then sign in."
-        );
-
-        setLoading(false);
-        return;
-      }
-
-      console.log("Account created and signed in.");
-      console.log("Going to onboarding...");
-
-      router.push("/onboarding");
+      setRepairs(data || []);
     } catch (error) {
-      console.error("========== SIGNUP FAILED ==========");
-      console.error(error);
-      console.error("===================================");
-
-      setError(
-        "Something went wrong while creating your account. Please try again."
-      );
-
+      console.error("Could not load repairs:", error);
+    } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    loadRepairs();
+  }, []);
+
+  async function toggleCompleted(repair) {
+    setUpdatingId(repair.id);
+
+    const { error } = await supabase
+      .from("repairs")
+      .update({ completed: !repair.completed })
+      .eq("id", repair.id)
+      .eq("user_id", repair.user_id);
+
+    if (error) {
+      console.error("Could not update repair:", error);
+      setUpdatingId(null);
+      return;
+    }
+
+    setRepairs((current) =>
+      current.map((item) =>
+        item.id === repair.id
+          ? { ...item, completed: !repair.completed }
+          : item
+      )
+    );
+
+    setUpdatingId(null);
+  }
+
+  async function deleteRepair(repair) {
+    const confirmed = window.confirm(
+      `Remove "${repair.title}"? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setUpdatingId(repair.id);
+
+    const { error } = await supabase
+      .from("repairs")
+      .delete()
+      .eq("id", repair.id)
+      .eq("user_id", repair.user_id);
+
+    if (error) {
+      console.error("Could not delete repair:", error);
+      setUpdatingId(null);
+      return;
+    }
+
+    setRepairs((current) =>
+      current.filter((item) => item.id !== repair.id)
+    );
+
+    setUpdatingId(null);
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "No date";
+
+    return new Date(`${dateString}T00:00:00`).toLocaleDateString(
+      "en-GB",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  }
+
   return (
-    <main className="onboardingPage">
-      <div className="onboardingCard">
-        <div className="logo">
-          <div className="logoMark">F</div>
-          <span>FixIt Log</span>
-        </div>
+    <main className="maintenancePage">
+      <div className="maintenanceContainer">
+        <header className="maintenancePageHeader">
+          <div>
+            <Link href="/dashboard" className="backLink">
+              ← Dashboard
+            </Link>
 
-        <div className="onboardingHeader">
-          <p className="eyebrow">GET STARTED</p>
+            <p className="eyebrow">YOUR HOME</p>
 
-          <h1>Create your FixIt Log.</h1>
+            <h1>Repairs</h1>
 
-          <p>
-            Create an account and start keeping your home's
-            history in one place.
-          </p>
-        </div>
-
-        <form
-          className="onboardingForm"
-          onSubmit={handleSubmit}
-        >
-          <label className="field">
-            <span>Email address</span>
-
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setError("");
-                setSuccess("");
-              }}
-              placeholder="you@example.com"
-              autoComplete="email"
-              autoFocus
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                setError("");
-                setSuccess("");
-              }}
-              placeholder="At least 6 characters"
-              autoComplete="new-password"
-              required
-            />
-          </label>
-
-          <label className="field">
-            <span>Confirm password</span>
-
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => {
-                setConfirmPassword(event.target.value);
-                setError("");
-                setSuccess("");
-              }}
-              placeholder="Enter your password again"
-              autoComplete="new-password"
-              required
-            />
-          </label>
-
-          {error && (
-            <p className="formError">
-              {error}
+            <p className="maintenanceSubtitle">
+              Keep a record of repairs, costs and work completed on
+              your home.
             </p>
-          )}
+          </div>
+        </header>
 
-          {success && (
-            <p className="formSuccess">
-              {success}
-            </p>
-          )}
-
-          <button
-            type="submit"
+        <div className="pageActions">
+          <Link
+            href="/repairs/new"
             className="primaryButton"
-            onClick={() => {
-              console.log("CREATE ACCOUNT CLICKED");
-            }}
           >
-            {loading
-              ? "Creating account..."
-              : "Create account →"}
-          </button>
-        </form>
-
-        <p className="onboardingFooter">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="textLink"
-          >
-            Sign in
+            ＋ Add repair
           </Link>
-        </p>
+        </div>
 
-        <p className="onboardingFooter">
-          <Link
-            href="/"
-            className="textLink"
-          >
-            ← Back to FixIt Log
+        {loading ? (
+          <div className="maintenanceEmptyState">
+            <div className="maintenanceIcon">🔧</div>
+
+            <div>
+              <h2>Loading repairs...</h2>
+              <p>
+                Your repair records will appear here.
+              </p>
+            </div>
+          </div>
+        ) : repairs.length === 0 ? (
+          <div className="maintenanceEmptyState">
+            <div className="maintenanceIcon">🔧</div>
+
+            <div>
+              <h2>No repairs logged yet</h2>
+
+              <p>
+                Add your first repair to keep a record of work
+                carried out on your home.
+              </p>
+
+              <Link
+                href="/repairs/new"
+                className="textLink"
+              >
+                Add a repair →
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <section className="maintenanceListPage">
+            <div className="sectionHeading">
+              <div>
+                <p className="eyebrow">REPAIR HISTORY</p>
+                <h2>Your repairs</h2>
+              </div>
+            </div>
+
+            <div className="maintenanceList">
+              {repairs.map((repair) => (
+                <article
+                  className="maintenanceItem"
+                  key={repair.id}
+                >
+                  <div className="maintenanceItemTop">
+                    <div className="maintenanceIcon">
+                      🔧
+                    </div>
+
+                    <div className="maintenanceContent">
+                      <strong>{repair.title}</strong>
+
+                      <span>
+                        {repair.category || "Repair"} ·{" "}
+                        {formatDate(repair.repair_date)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="maintenanceDetails">
+                    <div className="maintenanceDetail">
+                      <span className="detailLabel">
+                        STATUS
+                      </span>
+
+                      <strong>
+                        {repair.completed
+                          ? "Completed"
+                          : "Open"}
+                      </strong>
+                    </div>
+
+                    <div className="maintenanceDetail">
+                      <span className="detailLabel">
+                        COST
+                      </span>
+
+                      <strong>
+                        {repair.cost !== null &&
+                        repair.cost !== undefined
+                          ? `£${Number(repair.cost).toFixed(
+                              2
+                            )}`
+                          : "Not recorded"}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {repair.notes && (
+                    <div className="maintenanceNotes">
+                      <span className="detailLabel">
+                        NOTES
+                      </span>
+
+                      <p>{repair.notes}</p>
+                    </div>
+                  )}
+
+                  <div className="maintenanceItemActions">
+                    <Link
+                      href={`/repairs/${repair.id}/edit`}
+                      className="editButton"
+                    >
+                      Edit
+                    </Link>
+
+                    <button
+                      type="button"
+                      className="completeButton"
+                      onClick={() =>
+                        toggleCompleted(repair)
+                      }
+                      disabled={updatingId === repair.id}
+                    >
+                      {updatingId === repair.id
+                        ? "Updating..."
+                        : repair.completed
+                        ? "Mark as open"
+                        : "Mark complete"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="deleteButton"
+                      onClick={() =>
+                        deleteRepair(repair)
+                      }
+                      disabled={updatingId === repair.id}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <nav className="dashboardNav">
+          <Link href="/dashboard">
+            Dashboard
           </Link>
-        </p>
+
+          <Link href="/maintenance">
+            Maintenance
+          </Link>
+
+          <Link
+            href="/repairs"
+            className="active"
+          >
+            Repairs
+          </Link>
+
+          <Link href="/costs">
+            Costs
+          </Link>
+        </nav>
       </div>
     </main>
   );
