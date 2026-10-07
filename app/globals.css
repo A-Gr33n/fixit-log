@@ -3171,3 +3171,141 @@ h1 {
     font-size: 18px;
   }
 }
+
+/* =========================================
+   FIXIT LOG — MOBILE BOTTOM NAVIGATION
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* Leave room so content is never hidden
+     behind the fixed navigation */
+
+  .dashboardPage,
+  .maintenancePage,
+  .repairsPage,
+  .costsPage {
+    padding-bottom: 105px;
+  }
+
+
+  /* Fixed mobile navigation */
+
+  .dashboardNav,
+  .repairsNavigation,
+  .maintenanceNavigation,
+  .costsNavigation {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+
+    z-index: 1000;
+
+    width: calc(100% - 24px);
+    max-width: 430px;
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 4px;
+
+    padding: 7px;
+
+    margin: 0;
+
+    border: 1px solid rgba(30, 45, 38, 0.12);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.96);
+
+    box-shadow:
+      0 10px 35px rgba(30, 40, 35, 0.15),
+      0 2px 8px rgba(30, 40, 35, 0.06);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+
+  /* Navigation links */
+
+  .dashboardNav a,
+  .repairsNavigation a,
+  .maintenanceNavigation a,
+  .costsNavigation a {
+    min-width: 0;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px 3px;
+
+    border-radius: 12px;
+
+    color: #65706a;
+
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.15;
+
+    text-align: center;
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+      background 0.15s ease,
+      color 0.15s ease,
+      transform 0.15s ease;
+  }
+
+
+  /* Tap feedback */
+
+  .dashboardNav a:active,
+  .repairsNavigation a:active,
+  .maintenanceNavigation a:active,
+  .costsNavigation a:active {
+    transform: scale(0.97);
+  }
+
+
+  /* Active page */
+
+  .dashboardNav a.active,
+  .repairsNavigationActive,
+  .maintenanceNavigationActive,
+  .costsNavigationActive {
+    background: #eef1ec;
+    color: #1f332a;
+    font-weight: 700;
+  }
+}
+
+
+/* Extra-small phones */
+
+@media (max-width: 380px) {
+
+  .dashboardNav,
+  .repairsNavigation,
+  .maintenanceNavigation,
+  .costsNavigation {
+    width: calc(100% - 16px);
+    bottom: 8px;
+    padding: 6px;
+  }
+
+  .dashboardNav a,
+  .repairsNavigation a,
+  .maintenanceNavigation a,
+  .costsNavigation a {
+    min-height: 46px;
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 10px;
+  }
+}
