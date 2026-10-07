@@ -10,16 +10,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
 
-  async function handleSignOut() {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error("Could not sign out:", error);
-      return;
-    }
-
-    window.location.href = "/";
-  }
 
   async function loadDashboard() {
     try {
@@ -240,19 +230,18 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="dashboardHeaderActions">
-            <div className="dashboardHomeIcon">
-              🏠
-            </div>
+         <div className="dashboardHeaderActions">
+  <div className="dashboardHomeIcon">
+    🏠
+  </div>
 
-            <button
-              type="button"
-              className="signOutButton"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </button>
-          </div>
+  <Link
+    href="/settings"
+    className="settingsButton"
+  >
+    ⚙ Settings
+  </Link>
+</div>
         </header>
 
         {/* LOADING */}
