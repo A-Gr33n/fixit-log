@@ -3712,3 +3712,42 @@ h1 {
     grid-column: auto;
   }
 }
+
+/* =========================================
+   MOBILE NAV — CONTENT CLEARANCE
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* Give every main page plenty of space
+     to scroll its final content above the nav */
+
+  .dashboardContainer,
+  .maintenanceContainer,
+  .repairsContainer,
+  .costsContainer {
+    padding-bottom: 100px;
+  }
+
+  /* Slightly smaller floating navigation */
+
+  .dashboardNav,
+  .maintenanceNavigation,
+  .repairsNavigation,
+  .costsNavigation {
+    min-height: 58px;
+    bottom: 10px;
+  }
+
+  /* Make sure cards themselves are not clipped */
+
+  .maintenanceList,
+  .repairsList {
+    overflow: visible;
+  }
+
+  .maintenanceItemCard,
+  .repairCard {
+    scroll-margin-bottom: 100px;
+  }
+}
