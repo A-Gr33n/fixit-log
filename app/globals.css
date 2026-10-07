@@ -5003,3 +5003,938 @@ h1 {
     font-size: 14px;
   }
 }
+
+/* =========================================
+   FIXIT LOG — HOME HEALTH
+   ========================================= */
+
+.homeHealthCard {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+
+  margin-bottom: 34px;
+  padding: 28px;
+
+  border: 1px solid #d9ddd7;
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 1px 2px rgba(20, 30, 25, 0.03),
+    0 7px 24px rgba(20, 30, 25, 0.04);
+}
+
+.homeHealthScore {
+  width: 142px;
+  height: 142px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 10px solid #d9e2dc;
+  border-radius: 50%;
+
+  background: #f7f9f6;
+}
+
+.homeHealthNumber {
+  color: #20352a;
+
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.homeHealthOutOf {
+  margin-top: 5px;
+
+  color: #718078;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.homeHealthContent {
+  min-width: 0;
+}
+
+.homeHealthContent h2 {
+  margin: 5px 0 8px;
+
+  color: #17271f;
+
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.homeHealthMessage {
+  max-width: 540px;
+
+  margin: 0;
+
+  color: #68766f;
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.homeHealthStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 18px;
+}
+
+.homeHealthStats span {
+  padding: 7px 10px;
+
+  border-radius: 999px;
+
+  background: #f1f3ef;
+
+  color: #58665f;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.homeHealthStats strong {
+  color: #253a2f;
+}
+
+.homeHealthAttention {
+  margin: 14px 0 0;
+
+  color: #405149;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* STATUS VARIATIONS */
+
+.homeHealthCard.excellent .homeHealthScore {
+  border-color: #9fc5a8;
+  background: #f2f8f3;
+}
+
+.homeHealthCard.good .homeHealthScore {
+  border-color: #b8c9a5;
+  background: #f5f8f1;
+}
+
+.homeHealthCard.attention .homeHealthScore {
+  border-color: #d8c28d;
+  background: #fbf8ef;
+}
+
+.homeHealthCard.action .homeHealthScore {
+  border-color: #d5aaa2;
+  background: #fbf3f1;
+}
+
+
+/* =========================================
+   HOME HEALTH — MOBILE
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  .homeHealthCard {
+    grid-template-columns: 1fr;
+
+    gap: 20px;
+
+    margin-bottom: 28px;
+    padding: 20px;
+
+    border-radius: 19px;
+  }
+
+  .homeHealthScore {
+    width: 118px;
+    height: 118px;
+
+    border-width: 8px;
+  }
+
+  .homeHealthNumber {
+    font-size: 39px;
+  }
+
+  .homeHealthContent h2 {
+    font-size: 24px;
+  }
+
+  .homeHealthStats {
+    gap: 6px;
+
+    margin-top: 15px;
+  }
+
+  .homeHealthStats span {
+    padding: 7px 9px;
+
+    font-size: 10px;
+  }
+}
+
+/* =========================================
+   FIXIT LOG — WHAT TO DO NEXT
+   ========================================= */
+
+.nextActionsSection {
+  margin-bottom: 38px;
+}
+
+.nextActionsSection .sectionHeading {
+  margin-bottom: 16px;
+}
+
+.nextActionsDescription {
+  margin: 7px 0 0;
+
+  color: #718078;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.nextActionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nextActionCard {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 28px;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 16px 18px;
+
+  border: 1px solid #e1dfd9;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  color: inherit;
+  text-decoration: none;
+
+  box-shadow:
+    0 1px 2px rgba(20, 30, 25, 0.02),
+    0 4px 14px rgba(20, 30, 25, 0.025);
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.nextActionCard:hover {
+  border-color: #cbd2cc;
+
+  box-shadow:
+    0 2px 4px rgba(20, 30, 25, 0.03),
+    0 7px 20px rgba(20, 30, 25, 0.05);
+
+  transform: translateY(-1px);
+}
+
+.nextActionNumber {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eef1ec;
+
+  color: #31483b;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nextActionContent {
+  min-width: 0;
+}
+
+.nextActionTop {
+  margin-bottom: 6px;
+}
+
+.nextActionStatus {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nextActionStatus.overdue {
+  background: #f8e9e6;
+  color: #8b4339;
+}
+
+.nextActionStatus.repair {
+  background: #edf0f4;
+  color: #4c5e70;
+}
+
+.nextActionStatus.upcoming {
+  background: #eef3e9;
+  color: #536c48;
+}
+
+.nextActionContent h3 {
+  margin: 0;
+
+  color: #21352b;
+
+  font-size: 15px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+.nextActionContent p {
+  margin: 4px 0 0;
+
+  color: #77837d;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.nextActionArrow {
+  color: #87928c;
+
+  font-size: 19px;
+
+  transition: transform 0.15s ease;
+}
+
+.nextActionCard:hover .nextActionArrow {
+  transform: translateX(3px);
+}
+
+
+/* EMPTY STATE */
+
+.nextActionsEmpty {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 20px;
+
+  border: 1px solid #dce4dc;
+  border-radius: 16px;
+
+  background: #f7faf6;
+}
+
+.nextActionsEmptyIcon {
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e3eee4;
+
+  color: #416349;
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.nextActionsEmpty h3 {
+  margin: 0;
+
+  color: #26392f;
+
+  font-size: 15px;
+}
+
+.nextActionsEmpty p {
+  margin: 4px 0 0;
+
+  color: #718078;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* =========================================
+   WHAT TO DO NEXT — MOBILE
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  .nextActionsSection {
+    margin-bottom: 30px;
+  }
+
+  .nextActionCard {
+    grid-template-columns:
+      38px
+      minmax(0, 1fr)
+      20px;
+
+    gap: 11px;
+
+    padding: 15px;
+
+    border-radius: 15px;
+  }
+
+  .nextActionNumber {
+    width: 36px;
+    height: 36px;
+
+    font-size: 12px;
+  }
+
+  .nextActionContent h3 {
+    font-size: 15px;
+  }
+
+  .nextActionContent p {
+    font-size: 11px;
+  }
+
+  .nextActionArrow {
+    font-size: 17px;
+  }
+
+  .nextActionsEmpty {
+    align-items: flex-start;
+
+    padding: 17px;
+  }
+}
+
+/* =========================================
+   FIXIT LOG — HOME HEALTH FINAL POLISH
+   STAGE 5
+   ========================================= */
+
+
+/* -----------------------------------------
+   HOME HEALTH — DESKTOP REFINEMENT
+   ----------------------------------------- */
+
+.homeHealthCard {
+  position: relative;
+  overflow: hidden;
+
+  margin-top: 6px;
+  margin-bottom: 34px;
+
+  border-color: rgba(45, 65, 55, 0.12);
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #fbfcfa 100%
+    );
+}
+
+
+/* Small status accent */
+
+.homeHealthCard::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: 5px;
+
+  background: #9aaa9f;
+}
+
+.homeHealthCard.excellent::before {
+  background: #78a784;
+}
+
+.homeHealthCard.good::before {
+  background: #96aa78;
+}
+
+.homeHealthCard.attention::before {
+  background: #c4a75f;
+}
+
+.homeHealthCard.action::before {
+  background: #bb776b;
+}
+
+
+/* Score circle refinement */
+
+.homeHealthScore {
+  position: relative;
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(40, 60, 50, 0.04),
+    0 6px 18px
+      rgba(40, 60, 50, 0.05);
+}
+
+.homeHealthNumber {
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* Status heading */
+
+.homeHealthContent h2 {
+  letter-spacing: -0.5px;
+}
+
+
+/* Stat pills */
+
+.homeHealthStats span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 30px;
+
+  border: 1px solid
+    rgba(50, 70, 60, 0.06);
+
+  background: #f3f5f1;
+}
+
+
+/* Attention message */
+
+.homeHealthAttention {
+  display: inline-flex;
+  align-items: center;
+
+  margin-top: 15px;
+}
+
+
+/* -----------------------------------------
+   NEXT ACTIONS — DESKTOP REFINEMENT
+   ----------------------------------------- */
+
+.nextActionsSection {
+  position: relative;
+}
+
+.nextActionsList {
+  gap: 11px;
+}
+
+.nextActionCard {
+  position: relative;
+  overflow: hidden;
+}
+
+
+/* Priority indicator */
+
+.nextActionCard::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  background: #d7ddd8;
+}
+
+
+/* Number circles */
+
+.nextActionNumber {
+  position: relative;
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(40, 60, 50, 0.04);
+}
+
+
+/* First recommendation gets subtle emphasis */
+
+.nextActionCard:first-child {
+  border-color: #cfd7d1;
+
+  box-shadow:
+    0 1px 2px
+      rgba(20, 30, 25, 0.025),
+    0 7px 20px
+      rgba(20, 30, 25, 0.04);
+}
+
+.nextActionCard:first-child::before {
+  width: 4px;
+
+  background: #6f8e7b;
+}
+
+.nextActionCard:first-child
+.nextActionNumber {
+  background: #e5ece6;
+  color: #284333;
+}
+
+
+/* Arrow feels more tappable */
+
+.nextActionArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  background: #f4f5f2;
+}
+
+
+/* -----------------------------------------
+   MOBILE
+   ----------------------------------------- */
+
+@media (max-width: 700px) {
+
+  /*
+    HOME HEALTH
+
+    Keep score and status together rather
+    than allowing the desktop card to feel
+    oversized on a phone.
+  */
+
+  .homeHealthCard {
+    grid-template-columns:
+      104px minmax(0, 1fr);
+
+    align-items: center;
+
+    gap: 16px;
+
+    margin-top: 0;
+    margin-bottom: 26px;
+
+    padding: 18px;
+
+    border-radius: 18px;
+  }
+
+  .homeHealthCard::before {
+    width: 4px;
+  }
+
+
+  /* Score */
+
+  .homeHealthScore {
+    width: 100px;
+    height: 100px;
+
+    border-width: 7px;
+  }
+
+  .homeHealthNumber {
+    font-size: 34px;
+    letter-spacing: -1.5px;
+  }
+
+  .homeHealthOutOf {
+    margin-top: 3px;
+
+    font-size: 9px;
+  }
+
+
+  /* Text */
+
+  .homeHealthContent .eyebrow {
+    margin-bottom: 3px;
+
+    font-size: 9px;
+  }
+
+  .homeHealthContent h2 {
+    margin: 3px 0 6px;
+
+    font-size: 21px;
+    line-height: 1.1;
+  }
+
+  .homeHealthMessage {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+
+  /*
+    Put the supporting information below
+    the score + status and let it use the
+    full card width.
+  */
+
+  .homeHealthStats {
+    grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 6px;
+
+    margin-top: 4px;
+  }
+
+  .homeHealthStats span {
+    min-width: 0;
+    min-height: 42px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 2px;
+
+    padding: 6px 4px;
+
+    border-radius: 10px;
+
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .homeHealthStats strong {
+    display: block;
+
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .homeHealthAttention {
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+    margin: 2px 0 0;
+
+    padding-top: 10px;
+
+    border-top: 1px solid
+      rgba(40, 60, 50, 0.08);
+
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+
+  /* ---------------------------------------
+     NEXT PRIORITIES
+     --------------------------------------- */
+
+  .nextActionsSection {
+    margin-bottom: 30px;
+  }
+
+  .nextActionsDescription {
+    max-width: 290px;
+
+    font-size: 12px;
+  }
+
+  .nextActionsList {
+    gap: 9px;
+  }
+
+  .nextActionCard {
+    grid-template-columns:
+      34px minmax(0, 1fr) 28px;
+
+    gap: 11px;
+
+    min-height: 86px;
+
+    padding: 13px 12px;
+
+    border-radius: 14px;
+
+    -webkit-tap-highlight-color:
+      transparent;
+  }
+
+  .nextActionCard:active {
+    transform: scale(0.985);
+
+    background: #fafbf9;
+  }
+
+  .nextActionNumber {
+    width: 32px;
+    height: 32px;
+
+    font-size: 11px;
+  }
+
+  .nextActionTop {
+    margin-bottom: 5px;
+  }
+
+  .nextActionStatus {
+    padding: 4px 7px;
+
+    font-size: 8px;
+  }
+
+  .nextActionContent h3 {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .nextActionContent p {
+    margin-top: 3px;
+
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .nextActionArrow {
+    width: 26px;
+    height: 26px;
+
+    font-size: 15px;
+  }
+
+
+  /* Empty state */
+
+  .nextActionsEmpty {
+    gap: 12px;
+
+    padding: 15px;
+
+    border-radius: 14px;
+  }
+
+  .nextActionsEmptyIcon {
+    flex-basis: 38px;
+
+    width: 38px;
+    height: 38px;
+  }
+
+  .nextActionsEmpty h3 {
+    font-size: 14px;
+  }
+
+  .nextActionsEmpty p {
+    font-size: 11px;
+  }
+}
+
+
+/* -----------------------------------------
+   VERY SMALL PHONES
+   ----------------------------------------- */
+
+@media (max-width: 390px) {
+
+  .homeHealthCard {
+    grid-template-columns:
+      88px minmax(0, 1fr);
+
+    gap: 13px;
+
+    padding: 16px;
+  }
+
+  .homeHealthScore {
+    width: 86px;
+    height: 86px;
+
+    border-width: 6px;
+  }
+
+  .homeHealthNumber {
+    font-size: 29px;
+  }
+
+  .homeHealthContent h2 {
+    font-size: 19px;
+  }
+
+  .homeHealthMessage {
+    font-size: 11px;
+  }
+
+  .homeHealthStats span {
+    font-size: 8px;
+  }
+
+  .homeHealthStats strong {
+    font-size: 13px;
+  }
+
+  .nextActionCard {
+    grid-template-columns:
+      30px minmax(0, 1fr) 24px;
+
+    gap: 9px;
+
+    padding: 12px 10px;
+  }
+
+  .nextActionNumber {
+    width: 29px;
+    height: 29px;
+  }
+}
