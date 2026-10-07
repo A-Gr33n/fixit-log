@@ -3343,3 +3343,372 @@ h1 {
     font-weight: 700;
   }
 }
+
+/* =========================================
+   FIXIT LOG — MOBILE CARD & ACTION POLISH
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* =======================================
+     MAINTENANCE CARDS
+     ======================================= */
+
+  .maintenanceItemCard {
+    position: relative;
+    padding: 18px;
+    gap: 14px;
+
+    border-radius: 18px;
+
+    box-shadow:
+      0 1px 2px rgba(20, 30, 25, 0.03),
+      0 5px 18px rgba(20, 30, 25, 0.04);
+  }
+
+  .maintenanceItemIcon {
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+  }
+
+  .maintenanceItemMain {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .maintenanceItemTop {
+    width: 100%;
+  }
+
+  .maintenanceItemTop h2 {
+    margin: 0;
+
+    font-size: 18px;
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+  }
+
+  .maintenanceStatus {
+    width: fit-content;
+
+    margin-top: 9px;
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .maintenanceItemDetails {
+    margin-top: 13px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .maintenanceNotes {
+    margin-top: 13px;
+
+    font-size: 14px;
+    line-height: 1.55;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* Maintenance actions */
+
+  .maintenanceItemMain > .editButton,
+  .maintenanceItemMain > .completeButton,
+  .maintenanceItemMain > .deleteButton {
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 9px;
+    padding: 11px 14px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text-align: center;
+  }
+
+  .maintenanceItemMain > .editButton {
+    margin-top: 18px;
+  }
+
+  .maintenanceItemMain > .deleteButton {
+    margin-top: 14px;
+  }
+
+
+  /* =======================================
+     REPAIR CARDS
+     ======================================= */
+
+  .repairCard {
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    box-shadow:
+      0 1px 2px rgba(20, 30, 25, 0.03),
+      0 5px 18px rgba(20, 30, 25, 0.04);
+  }
+
+  .repairCardTop {
+    padding: 18px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 13px;
+  }
+
+  .repairIcon {
+    flex: 0 0 46px;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+  }
+
+  .repairMainInfo {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .repairTitleRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 8px;
+  }
+
+  .repairTitleRow h3 {
+    margin: 0;
+
+    font-size: 18px;
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+  }
+
+  .repairStatus {
+    width: fit-content;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .repairMeta {
+    margin-top: 9px;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 5px;
+
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+
+  /* Repair information */
+
+  .repairDetails {
+    margin: 0 18px;
+
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .repairDetail {
+    min-height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 12px 0;
+  }
+
+  .repairDetail + .repairDetail {
+    border-top: 1px solid #ece9e3;
+    border-left: 0;
+  }
+
+  .repairDetailLabel {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .repairDetail strong {
+    font-size: 14px;
+    text-align: right;
+  }
+
+
+  /* Repair notes */
+
+  .repairNotes {
+    margin: 0 18px;
+    padding: 15px 0;
+
+    border-top: 1px solid #ece9e3;
+  }
+
+  .repairNotes p {
+    margin-top: 7px;
+
+    font-size: 14px;
+    line-height: 1.55;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* =======================================
+     REPAIR ACTION BUTTONS
+     ======================================= */
+
+  .repairActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 9px;
+
+    padding: 16px 18px 18px;
+  }
+
+  .repairActions a,
+  .repairActions button {
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 12px;
+
+    border-radius: 12px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-align: center;
+  }
+
+
+  /* Edit and Complete sit together */
+
+  .repairEditButton,
+  .repairCompleteButton {
+    min-width: 0;
+  }
+
+
+  /* Remove gets its own full-width row */
+
+  .repairDeleteButton {
+    grid-column: 1 / -1;
+
+    min-height: 46px;
+
+    margin-top: 3px;
+  }
+
+
+  /* Disabled action feedback */
+
+  .repairActions button:disabled,
+  .maintenanceItemMain button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+
+  /* =======================================
+     LIST SPACING
+     ======================================= */
+
+  .maintenanceList,
+  .repairsList {
+    gap: 14px;
+  }
+}
+
+
+/* =========================================
+   EXTRA SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+  .maintenanceItemCard,
+  .repairCardTop {
+    padding: 15px;
+  }
+
+  .maintenanceItemIcon,
+  .repairIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .repairIcon {
+    flex-basis: 42px;
+  }
+
+  .repairDetails,
+  .repairNotes {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+
+  .repairActions {
+    grid-template-columns: 1fr;
+
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .repairDeleteButton {
+    grid-column: auto;
+  }
+}
