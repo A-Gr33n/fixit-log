@@ -3751,3 +3751,281 @@ h1 {
     scroll-margin-bottom: 100px;
   }
 }
+
+/* =========================================
+   FIXIT LOG — MOBILE FORM POLISH
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* FORM PAGE */
+
+  .formPage {
+    padding: 20px 16px 60px;
+  }
+
+  .formContainer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+
+  /* BACK LINK */
+
+  .formPage .backLink {
+    min-height: 44px;
+
+    display: inline-flex;
+    align-items: center;
+
+    margin-bottom: 22px;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+
+  /* FORM HEADER */
+
+  .formHeader {
+    margin-bottom: 24px;
+  }
+
+  .formHeader .eyebrow {
+    margin-bottom: 8px;
+  }
+
+  .formHeader h1 {
+    margin: 0 0 10px;
+
+    font-size: 34px;
+    line-height: 1.08;
+    letter-spacing: -1px;
+  }
+
+  .formHeader > p:last-child {
+    max-width: 100%;
+
+    margin: 0;
+
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+
+  /* FORM CARD */
+
+  .maintenanceForm {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 22px;
+
+    padding: 20px;
+
+    border-radius: 18px;
+  }
+
+
+  /* FIELD LABELS */
+
+  .field {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .field > span {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .field small {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.65;
+  }
+
+
+  /* TEXT / DATE INPUTS */
+
+  .field > input {
+    width: 100%;
+    min-height: 52px;
+
+    padding: 0 14px;
+
+    border-radius: 12px;
+
+    font-size: 16px !important;
+  }
+
+  .field > input[type="date"] {
+    min-height: 52px;
+  }
+
+
+  /* CATEGORY BUTTONS */
+
+  .categoryGrid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+  }
+
+  .categoryOption {
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 8px;
+
+    border-radius: 11px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-align: center;
+
+    touch-action: manipulation;
+  }
+
+  .categoryOption.selected {
+    font-weight: 700;
+  }
+
+
+  /* COST INPUT */
+
+  .costInput {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+
+    border-radius: 12px;
+  }
+
+  .costInput > span {
+    flex-shrink: 0;
+
+    padding-left: 14px;
+
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .costInput input {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+
+    padding: 0 14px 0 8px;
+
+    border: 0;
+    outline: 0;
+
+    background: transparent;
+
+    font-size: 16px !important;
+  }
+
+
+  /* NOTES */
+
+  .field textarea {
+    width: 100%;
+    min-height: 120px;
+
+    padding: 13px 14px;
+
+    border-radius: 12px;
+
+    font-size: 16px !important;
+    line-height: 1.5;
+
+    resize: vertical;
+  }
+
+
+  /* ERROR */
+
+  .formError {
+    margin: -5px 0 0;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+
+  /* SAVE BUTTON */
+
+  .maintenanceForm .primaryButton {
+    width: 100%;
+    min-height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 2px;
+
+    padding: 12px 18px;
+
+    border-radius: 13px;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    touch-action: manipulation;
+  }
+
+
+  /* DISABLED SAVE BUTTON */
+
+  .maintenanceForm .primaryButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+  .formPage {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .maintenanceForm {
+    padding: 16px;
+  }
+
+  .categoryGrid {
+    gap: 8px;
+  }
+
+  .categoryOption {
+    font-size: 12px;
+  }
+}
