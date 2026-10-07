@@ -40,6 +40,11 @@ export default function MaintenancePage() {
     setActionMessage,
   ] = useState("");
 
+  const [
+    actionError,
+    setActionError,
+  ] = useState("");
+
   async function loadMaintenance() {
     try {
       const {
@@ -105,17 +110,12 @@ export default function MaintenancePage() {
     const day =
       Number(parts[2]);
 
-    /*
-      Move to the first day of the
-      target month first. This prevents
-      dates such as 31 January from
-      accidentally skipping February.
-    */
-    const target = new Date(
-      year,
-      month - 1 + months,
-      1
-    );
+    const target =
+      new Date(
+        year,
+        month - 1 + months,
+        1
+      );
 
     const lastDay =
       new Date(
@@ -125,7 +125,10 @@ export default function MaintenancePage() {
       ).getDate();
 
     target.setDate(
-      Math.min(day, lastDay)
+      Math.min(
+        day,
+        lastDay
+      )
     );
 
     const finalYear =
@@ -164,22 +167,101 @@ export default function MaintenancePage() {
     return `${year}-${month}-${day}`;
   }
 
+  async function createHistoryRecord(
+    item,
+    completedDate
+  ) {
+    const {
+      error: historyError,
+    } = await supabase
+      .from("home_history")
+      .insert({
+        user_id:
+          item.user_id,
+
+        record_type:
+          "maintenance",
+
+        source_id:
+          item.id,
+
+        title:
+          item.title,
+
+        category:
+          item.category || null,
+
+        completed_date:
+          completedDate,
+
+        cost:
+          item.estimated_cost !==
+            null &&
+          item.estimated_cost !==
+            undefined
+            ? Number(
+                item.estimated_cost
+              )
+            : null,
+
+        notes:
+          item.notes || null,
+      });
+
+    if (historyError) {
+      console.error(
+        "Could not create history record:",
+        historyError
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
   async function toggleCompleted(
     item
   ) {
-    setUpdatingId(item.id);
+    setUpdatingId(
+      item.id
+    );
+
     setActionMessage("");
+    setActionError("");
 
     /*
-      RECURRING ITEM:
-      completing it schedules
-      its next occurrence.
+      RECURRING MAINTENANCE
+
+      Record the completed occurrence
+      in Home History first.
+
+      Then move the live maintenance
+      item to its next due date.
     */
     if (
       item.recurring &&
       !item.completed &&
       item.repeat_months
     ) {
+      const completedDate =
+        getTodayString();
+
+      const historySaved =
+        await createHistoryRecord(
+          item,
+          completedDate
+        );
+
+      if (!historySaved) {
+        setActionError(
+          "We couldn't save this completion to Home History, so the next occurrence was not scheduled."
+        );
+
+        setUpdatingId(null);
+        return;
+      }
+
       const nextDueDate =
         addMonthsToDate(
           item.due_date,
@@ -188,16 +270,15 @@ export default function MaintenancePage() {
           )
         );
 
-      const completedDate =
-        getTodayString();
-
       const { error } =
         await supabase
           .from("maintenance")
           .update({
             completed: false,
+
             due_date:
               nextDueDate,
+
             last_completed_date:
               completedDate,
           })
@@ -216,8 +297,8 @@ export default function MaintenancePage() {
           error
         );
 
-        setActionMessage(
-          "We couldn't schedule the next occurrence."
+        setActionError(
+          "The completion was added to Home History, but we couldn't schedule the next occurrence."
         );
 
         setUpdatingId(null);
@@ -235,10 +316,13 @@ export default function MaintenancePage() {
                 item.id
                   ? {
                       ...maintenanceItem,
+
                       completed:
                         false,
+
                       due_date:
                         nextDueDate,
+
                       last_completed_date:
                         completedDate,
                     }
@@ -247,16 +331,16 @@ export default function MaintenancePage() {
             .sort(
               (a, b) =>
                 new Date(
-                  a.due_date
+                  `${a.due_date}T00:00:00`
                 ) -
                 new Date(
-                  b.due_date
+                  `${b.due_date}T00:00:00`
                 )
             )
       );
 
       setActionMessage(
-        `"${item.title}" completed. Next due ${formatDate(
+        `"${item.title}" completed and saved to Home History. Next due ${formatDate(
           nextDueDate
         )}.`
       );
@@ -266,30 +350,111 @@ export default function MaintenancePage() {
     }
 
     /*
-      NORMAL ONE-OFF ITEM
+      ONE-OFF MAINTENANCE
+
+      When completing it, create
+      its permanent history record.
     */
-
-    const newCompleted =
-      !item.completed;
-
-    const updates = {
-      completed:
-        newCompleted,
-    };
-
-    if (newCompleted) {
-      updates.last_completed_date =
+    if (!item.completed) {
+      const completedDate =
         getTodayString();
-    } else {
-      updates.last_completed_date =
-        null;
+
+      const historySaved =
+        await createHistoryRecord(
+          item,
+          completedDate
+        );
+
+      if (!historySaved) {
+        setActionError(
+          "We couldn't save this completion to Home History, so the maintenance item was left open."
+        );
+
+        setUpdatingId(null);
+        return;
+      }
+
+      const updates = {
+        completed: true,
+
+        last_completed_date:
+          completedDate,
+      };
+
+      const { error } =
+        await supabase
+          .from("maintenance")
+          .update(updates)
+          .eq(
+            "id",
+            item.id
+          )
+          .eq(
+            "user_id",
+            item.user_id
+          );
+
+      if (error) {
+        console.error(
+          "Could not complete maintenance:",
+          error
+        );
+
+        setActionError(
+          "The completion was added to Home History, but we couldn't update the maintenance item."
+        );
+
+        setUpdatingId(null);
+        return;
+      }
+
+      setMaintenance(
+        (current) =>
+          current.map(
+            (
+              maintenanceItem
+            ) =>
+              maintenanceItem.id ===
+              item.id
+                ? {
+                    ...maintenanceItem,
+                    ...updates,
+                  }
+                : maintenanceItem
+          )
+      );
+
+      setActionMessage(
+        `"${item.title}" completed and saved to Home History.`
+      );
+
+      setUpdatingId(null);
+      return;
     }
+
+    /*
+      REOPEN A COMPLETED
+      ONE-OFF ITEM
+
+      This changes the live record
+      back to open.
+
+      We intentionally do not delete
+      its historical completion.
+    */
 
     const { error } =
       await supabase
         .from("maintenance")
-        .update(updates)
-        .eq("id", item.id)
+        .update({
+          completed: false,
+          last_completed_date:
+            null,
+        })
+        .eq(
+          "id",
+          item.id
+        )
         .eq(
           "user_id",
           item.user_id
@@ -297,8 +462,12 @@ export default function MaintenancePage() {
 
     if (error) {
       console.error(
-        "Could not update maintenance:",
+        "Could not reopen maintenance:",
         error
+      );
+
+      setActionError(
+        "We couldn't reopen this maintenance item."
       );
 
       setUpdatingId(null);
@@ -315,10 +484,17 @@ export default function MaintenancePage() {
             item.id
               ? {
                   ...maintenanceItem,
-                  ...updates,
+                  completed:
+                    false,
+                  last_completed_date:
+                    null,
                 }
               : maintenanceItem
         )
+    );
+
+    setActionMessage(
+      `"${item.title}" reopened.`
     );
 
     setUpdatingId(null);
@@ -336,14 +512,21 @@ export default function MaintenancePage() {
       return;
     }
 
-    setUpdatingId(item.id);
+    setUpdatingId(
+      item.id
+    );
+
     setActionMessage("");
+    setActionError("");
 
     const { error } =
       await supabase
         .from("maintenance")
         .delete()
-        .eq("id", item.id)
+        .eq(
+          "id",
+          item.id
+        )
         .eq(
           "user_id",
           item.user_id
@@ -353,6 +536,10 @@ export default function MaintenancePage() {
       console.error(
         "Could not delete maintenance:",
         error
+      );
+
+      setActionError(
+        "We couldn't remove this maintenance item."
       );
 
       setUpdatingId(null);
@@ -392,7 +579,9 @@ export default function MaintenancePage() {
     );
   }
 
-  function getStatus(item) {
+  function getStatus(
+    item
+  ) {
     if (item.completed) {
       return "Completed";
     }
@@ -523,13 +712,19 @@ export default function MaintenancePage() {
 
   const filtersActive =
     search.trim() !== "" ||
-    categoryFilter !== "All" ||
-    statusFilter !== "All";
+    categoryFilter !==
+      "All" ||
+    statusFilter !==
+      "All";
 
   function clearFilters() {
     setSearch("");
-    setCategoryFilter("All");
-    setStatusFilter("All");
+    setCategoryFilter(
+      "All"
+    );
+    setStatusFilter(
+      "All"
+    );
   }
 
   return (
@@ -548,11 +743,14 @@ export default function MaintenancePage() {
               YOUR HOME
             </p>
 
-            <h1>Maintenance</h1>
+            <h1>
+              Maintenance
+            </h1>
 
             <p className="maintenanceSubtitle">
-              Keep track of everything
-              your home needs.
+              Keep track of
+              everything your home
+              needs.
             </p>
           </div>
 
@@ -574,9 +772,20 @@ export default function MaintenancePage() {
           </div>
         )}
 
+        {actionError && (
+          <div className="historyActionError">
+            <span>!</span>
+
+            <p>
+              {actionError}
+            </p>
+          </div>
+        )}
+
         {loading ? (
           <div className="maintenanceEmptyState">
-            Loading your maintenance...
+            Loading your
+            maintenance...
           </div>
         ) : maintenance.length ===
           0 ? (
@@ -612,7 +821,9 @@ export default function MaintenancePage() {
                 </label>
 
                 <div className="maintenanceSearchInput">
-                  <span>🔎</span>
+                  <span>
+                    🔎
+                  </span>
 
                   <input
                     id="maintenance-search"
@@ -623,7 +834,8 @@ export default function MaintenancePage() {
                       event
                     ) =>
                       setSearch(
-                        event.target
+                        event
+                          .target
                           .value
                       )
                     }
@@ -645,7 +857,8 @@ export default function MaintenancePage() {
                     event
                   ) =>
                     setCategoryFilter(
-                      event.target
+                      event
+                        .target
                         .value
                     )
                   }
@@ -655,7 +868,9 @@ export default function MaintenancePage() {
                   </option>
 
                   {categories.map(
-                    (category) => (
+                    (
+                      category
+                    ) => (
                       <option
                         value={
                           category
@@ -664,7 +879,9 @@ export default function MaintenancePage() {
                           category
                         }
                       >
-                        {category}
+                        {
+                          category
+                        }
                       </option>
                     )
                   )}
@@ -685,7 +902,8 @@ export default function MaintenancePage() {
                     event
                   ) =>
                     setStatusFilter(
-                      event.target
+                      event
+                        .target
                         .value
                     )
                   }
@@ -750,13 +968,15 @@ export default function MaintenancePage() {
                 </div>
 
                 <h2>
-                  No matching maintenance
+                  No matching
+                  maintenance
                 </h2>
 
                 <p>
-                  Try changing your search
-                  or filters to find what
-                  you're looking for.
+                  Try changing your
+                  search or filters
+                  to find what you're
+                  looking for.
                 </p>
 
                 <button
@@ -774,7 +994,9 @@ export default function MaintenancePage() {
                 {filteredMaintenance.map(
                   (item) => {
                     const status =
-                      getStatus(item);
+                      getStatus(
+                        item
+                      );
 
                     return (
                       <article
@@ -817,7 +1039,9 @@ export default function MaintenancePage() {
                                   "-"
                                 )}`}
                             >
-                              {status}
+                              {
+                                status
+                              }
                             </span>
                           </div>
 
@@ -857,7 +1081,8 @@ export default function MaintenancePage() {
                           {item.last_completed_date &&
                             item.recurring && (
                               <p className="lastCompletedText">
-                                Last completed{" "}
+                                Last
+                                completed{" "}
                                 {formatDate(
                                   item.last_completed_date
                                 )}

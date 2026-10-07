@@ -15,21 +15,71 @@ const propertyTypes = [
   "Other",
 ];
 
+const reminderOptions = [
+  {
+    value: 1,
+    label: "1 day before",
+  },
+  {
+    value: 3,
+    label: "3 days before",
+  },
+  {
+    value: 7,
+    label: "7 days before",
+  },
+  {
+    value: 14,
+    label: "14 days before",
+  },
+  {
+    value: 30,
+    label: "30 days before",
+  },
+];
+
 export default function SettingsPage() {
   const router = useRouter();
 
   const [user, setUser] = useState(null);
 
   const [homeName, setHomeName] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [moveInDate, setMoveInDate] = useState("");
+  const [propertyType, setPropertyType] =
+    useState("");
+  const [moveInDate, setMoveInDate] =
+    useState("");
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
+  const [
+    remindersEnabled,
+    setRemindersEnabled,
+  ] = useState(true);
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [
+    reminderDays,
+    setReminderDays,
+  ] = useState(7);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [
+    savingReminders,
+    setSavingReminders,
+  ] = useState(false);
+
+  const [
+    signingOut,
+    setSigningOut,
+  ] = useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
 
   useEffect(() => {
     async function loadSettings() {
@@ -40,7 +90,8 @@ export default function SettingsPage() {
         const {
           data: { user },
           error: userError,
-        } = await supabase.auth.getUser();
+        } =
+          await supabase.auth.getUser();
 
         if (userError) {
           console.error(
@@ -68,7 +119,13 @@ export default function SettingsPage() {
         } = await supabase
           .from("home_profiles")
           .select(
-            "home_name, property_type, move_in_date"
+            `
+              home_name,
+              property_type,
+              move_in_date,
+              reminders_enabled,
+              reminder_days
+            `
           )
           .eq("user_id", user.id)
           .maybeSingle();
@@ -98,6 +155,17 @@ export default function SettingsPage() {
           setMoveInDate(
             profile.move_in_date || ""
           );
+
+          setRemindersEnabled(
+            profile.reminders_enabled ??
+              true
+          );
+
+          setReminderDays(
+            Number(
+              profile.reminder_days || 7
+            )
+          );
         }
       } catch (error) {
         console.error(
@@ -116,7 +184,9 @@ export default function SettingsPage() {
     loadSettings();
   }, [router]);
 
-  async function handleSaveHome(event) {
+  async function handleSaveHome(
+    event
+  ) {
     event.preventDefault();
 
     if (!user) {
@@ -138,12 +208,17 @@ export default function SettingsPage() {
           .upsert(
             {
               user_id: user.id,
+
               home_name:
-                homeName.trim() || null,
+                homeName.trim() ||
+                null,
+
               property_type:
                 propertyType || null,
+
               move_in_date:
                 moveInDate || null,
+
               updated_at:
                 new Date().toISOString(),
             },
@@ -182,6 +257,75 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSaveReminders(
+    event
+  ) {
+    event.preventDefault();
+
+    if (!user) {
+      setError(
+        "You need to be signed in to save reminder settings."
+      );
+
+      return;
+    }
+
+    setSavingReminders(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const { error: saveError } =
+        await supabase
+          .from("home_profiles")
+          .upsert(
+            {
+              user_id: user.id,
+
+              reminders_enabled:
+                remindersEnabled,
+
+              reminder_days:
+                Number(reminderDays),
+
+              updated_at:
+                new Date().toISOString(),
+            },
+            {
+              onConflict: "user_id",
+            }
+          );
+
+      if (saveError) {
+        console.error(
+          "Could not save reminders:",
+          saveError
+        );
+
+        setError(
+          "We couldn't save your reminder settings. Please try again."
+        );
+
+        return;
+      }
+
+      setSuccess(
+        "Reminder settings saved."
+      );
+    } catch (error) {
+      console.error(
+        "Could not save reminders:",
+        error
+      );
+
+      setError(
+        "Something went wrong saving your reminders."
+      );
+    } finally {
+      setSavingReminders(false);
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true);
     setError("");
@@ -190,7 +334,8 @@ export default function SettingsPage() {
     try {
       const {
         error: signOutError,
-      } = await supabase.auth.signOut();
+      } =
+        await supabase.auth.signOut();
 
       if (signOutError) {
         console.error(
@@ -241,7 +386,8 @@ export default function SettingsPage() {
           <h1>Settings</h1>
 
           <p>
-            Manage your home and account.
+            Manage your home and
+            account.
           </p>
         </header>
 
@@ -287,7 +433,6 @@ export default function SettingsPage() {
               </div>
             </section>
 
-
             {/* HOME DETAILS */}
 
             <section className="settingsCard">
@@ -308,14 +453,17 @@ export default function SettingsPage() {
               </div>
 
               <p className="settingsDescription">
-                Add a few details to make
-                FixIt Log feel more specific
-                to your home.
+                Add a few details to
+                make FixIt Log feel
+                more specific to your
+                home.
               </p>
 
               <form
                 className="settingsHomeForm"
-                onSubmit={handleSaveHome}
+                onSubmit={
+                  handleSaveHome
+                }
               >
                 <label className="settingsField">
                   <span>
@@ -325,9 +473,12 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     value={homeName}
-                    onChange={(event) => {
+                    onChange={(
+                      event
+                    ) => {
                       setHomeName(
-                        event.target.value
+                        event.target
+                          .value
                       );
 
                       setSuccess("");
@@ -337,11 +488,10 @@ export default function SettingsPage() {
                   />
 
                   <small>
-                    A friendly name for your
-                    home.
+                    A friendly name for
+                    your home.
                   </small>
                 </label>
-
 
                 <label className="settingsField">
                   <span>
@@ -349,17 +499,23 @@ export default function SettingsPage() {
                   </span>
 
                   <select
-                    value={propertyType}
-                    onChange={(event) => {
+                    value={
+                      propertyType
+                    }
+                    onChange={(
+                      event
+                    ) => {
                       setPropertyType(
-                        event.target.value
+                        event.target
+                          .value
                       );
 
                       setSuccess("");
                     }}
                   >
                     <option value="">
-                      Select property type
+                      Select property
+                      type
                     </option>
 
                     {propertyTypes.map(
@@ -375,7 +531,6 @@ export default function SettingsPage() {
                   </select>
                 </label>
 
-
                 <label className="settingsField">
                   <span>
                     Move-in date
@@ -383,10 +538,15 @@ export default function SettingsPage() {
 
                   <input
                     type="date"
-                    value={moveInDate}
-                    onChange={(event) => {
+                    value={
+                      moveInDate
+                    }
+                    onChange={(
+                      event
+                    ) => {
                       setMoveInDate(
-                        event.target.value
+                        event.target
+                          .value
                       );
 
                       setSuccess("");
@@ -394,12 +554,12 @@ export default function SettingsPage() {
                   />
 
                   <small>
-                    Optional — useful for
-                    building a history of
-                    your home.
+                    Optional — useful
+                    for building a
+                    history of your
+                    home.
                   </small>
                 </label>
-
 
                 <button
                   type="submit"
@@ -412,7 +572,6 @@ export default function SettingsPage() {
                 </button>
               </form>
             </section>
-
 
             {/* REMINDERS */}
 
@@ -428,35 +587,167 @@ export default function SettingsPage() {
                   </p>
 
                   <h2>
-                    Reminders
+                    Maintenance
+                    reminders
                   </h2>
                 </div>
               </div>
 
               <p className="settingsDescription">
-                Maintenance reminders will
-                be added here in a future
-                update.
+                Choose when FixIt Log
+                should start reminding
+                you about upcoming
+                maintenance.
               </p>
 
-              <div className="settingsComingSoon">
-                <div>
-                  <strong>
-                    Maintenance reminders
-                  </strong>
+              <form
+                className="settingsReminderForm"
+                onSubmit={
+                  handleSaveReminders
+                }
+              >
+                <div className="settingsReminderToggle">
+                  <div>
+                    <strong>
+                      Reminders
+                    </strong>
 
-                  <span>
-                    Get reminded when
-                    maintenance is coming up.
-                  </span>
+                    <span>
+                      Show maintenance
+                      reminders when
+                      jobs are getting
+                      close to their
+                      due date.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`settingsToggle ${
+                      remindersEnabled
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      setRemindersEnabled(
+                        (
+                          current
+                        ) =>
+                          !current
+                      );
+
+                      setSuccess("");
+                    }}
+                    aria-pressed={
+                      remindersEnabled
+                    }
+                    aria-label={
+                      remindersEnabled
+                        ? "Turn maintenance reminders off"
+                        : "Turn maintenance reminders on"
+                    }
+                  >
+                    <span />
+                  </button>
                 </div>
 
-                <span className="settingsSoonBadge">
-                  Coming soon
-                </span>
-              </div>
-            </section>
+                <label
+                  className={`settingsField settingsReminderDays ${
+                    !remindersEnabled
+                      ? "disabled"
+                      : ""
+                  }`}
+                >
+                  <span>
+                    Remind me
+                  </span>
 
+                  <select
+                    value={
+                      reminderDays
+                    }
+                    disabled={
+                      !remindersEnabled
+                    }
+                    onChange={(
+                      event
+                    ) => {
+                      setReminderDays(
+                        Number(
+                          event.target
+                            .value
+                        )
+                      );
+
+                      setSuccess("");
+                    }}
+                  >
+                    {reminderOptions.map(
+                      (option) => (
+                        <option
+                          key={
+                            option.value
+                          }
+                          value={
+                            option.value
+                          }
+                        >
+                          {
+                            option.label
+                          }
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                  <small>
+                    We'll use this
+                    window to highlight
+                    maintenance that's
+                    coming due.
+                  </small>
+                </label>
+
+                <div className="settingsReminderPreview">
+                  <div className="settingsReminderPreviewIcon">
+                    {remindersEnabled
+                      ? "🔔"
+                      : "🔕"}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {remindersEnabled
+                        ? "Reminders are on"
+                        : "Reminders are off"}
+                    </strong>
+
+                    <p>
+                      {remindersEnabled
+                        ? `We'll highlight maintenance ${reminderDays} ${
+                            reminderDays ===
+                            1
+                              ? "day"
+                              : "days"
+                          } before it's due.`
+                        : "Upcoming maintenance won't be highlighted as a reminder."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="settingsSaveButton"
+                  disabled={
+                    savingReminders
+                  }
+                >
+                  {savingReminders
+                    ? "Saving..."
+                    : "Save reminder settings"}
+                </button>
+              </form>
+            </section>
 
             {/* ABOUT */}
 
@@ -478,12 +769,12 @@ export default function SettingsPage() {
               </div>
 
               <p className="settingsDescription">
-                A simple place to keep track
-                of your home's maintenance,
-                repairs and costs.
+                A simple place to keep
+                track of your home's
+                maintenance, repairs
+                and costs.
               </p>
             </section>
-
 
             {/* SIGN OUT */}
 
@@ -503,23 +794,26 @@ export default function SettingsPage() {
                 </h2>
 
                 <p className="settingsDescription">
-                  Sign out of FixIt Log on
-                  this device.
+                  Sign out of FixIt
+                  Log on this device.
                 </p>
               </div>
 
               <button
                 type="button"
                 className="settingsSignOutButton"
-                onClick={handleSignOut}
-                disabled={signingOut}
+                onClick={
+                  handleSignOut
+                }
+                disabled={
+                  signingOut
+                }
               >
                 {signingOut
                   ? "Signing out..."
                   : "Sign out"}
               </button>
             </section>
-
 
             {/* SUCCESS / ERROR */}
 
@@ -537,7 +831,6 @@ export default function SettingsPage() {
 
           </div>
         )}
-
 
         {/* BOTTOM NAVIGATION */}
 
