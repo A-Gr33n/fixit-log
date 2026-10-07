@@ -4067,3 +4067,49 @@ h1 {
     text-align: center;
   }
 }
+
+/* =========================================
+   MOBILE EDIT MAINTENANCE STATUS
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  .maintenanceForm .field > .categoryOption {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 16px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+/* =========================================
+   MOBILE EDIT FORM STATUS
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  .maintenanceForm .field > .categoryOption {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 16px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
