@@ -2079,3 +2079,1095 @@ h1 {
     min-height: 46px;
   }
 }
+
+/* =========================================
+   COSTS PAGE
+   ========================================= */
+
+.costsPage {
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+}
+
+.costsContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.costsHeader {
+  margin-bottom: 32px;
+}
+
+.costsHeader h1 {
+  margin: 8px 0 10px;
+}
+
+.costsSubtitle {
+  max-width: 650px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Summary cards */
+
+.costSummaryGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 44px;
+}
+
+.costSummaryCard {
+  padding: 26px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.costSummaryMain {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.costSummaryMain .eyebrow {
+  color: #9ca3af;
+}
+
+.costSummaryTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.costSummaryCard h2 {
+  margin: 8px 0 8px;
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.costSummaryMain h2 {
+  color: #ffffff;
+}
+
+.costSummaryCard > p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.costSummaryMain > p {
+  color: #d1d5db;
+}
+
+.costSummaryIcon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f3f4f6;
+  font-size: 20px;
+}
+
+.totalIcon {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Cost history */
+
+.costsSection {
+  margin-top: 10px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.sectionHeading h2 {
+  margin: 7px 0 6px;
+  font-size: 25px;
+}
+
+.sectionDescription {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.costHistoryCount {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.costList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.costRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.costRow:hover {
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.costRowIcon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #f3f4f6;
+  font-size: 19px;
+}
+
+.maintenanceCostIcon {
+  background: #f3f4f6;
+}
+
+.repairCostIcon {
+  background: #f3f4f6;
+}
+
+.costRowContent {
+  min-width: 0;
+  flex: 1;
+}
+
+.costRowTop {
+  margin-bottom: 2px;
+}
+
+.costRowType {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.costRowContent h3 {
+  margin: 3px 0 4px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.costRowContent p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.costAmount {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: #111827;
+}
+
+/* Empty state */
+
+.costsEmptyState {
+  padding: 44px 24px;
+  text-align: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 20px;
+  background: #fafafa;
+}
+
+.costsEmptyIcon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  font-size: 24px;
+}
+
+.costsEmptyState h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.costsEmptyState p {
+  max-width: 470px;
+  margin: 0 auto;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.emptyStateActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* Bottom actions */
+
+.costsActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.secondaryAction:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+/* Mobile */
+
+@media (max-width: 800px) {
+  .costSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .costSummaryMain {
+    order: -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .costsPage {
+    padding: 24px 16px 40px;
+  }
+
+  .costsHeader {
+    margin-bottom: 24px;
+  }
+
+  .costSummaryGrid {
+    gap: 12px;
+    margin-bottom: 34px;
+  }
+
+  .costSummaryCard {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .costSummaryCard h2 {
+    font-size: 27px;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sectionHeading h2 {
+    font-size: 22px;
+  }
+
+  .costRow {
+    align-items: flex-start;
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .costRowIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .costAmount {
+    font-size: 15px;
+  }
+
+  .costRowContent h3 {
+    font-size: 15px;
+  }
+
+  .emptyStateActions {
+    flex-direction: column;
+  }
+
+  .emptyStateActions a {
+    width: 100%;
+  }
+
+  .costsActions {
+    flex-direction: column;
+  }
+
+  .costsActions a {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   MAINTENANCE SEARCH & FILTERS
+   ========================================= */
+
+.maintenanceFilters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 190px 190px auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.maintenanceSearch,
+.maintenanceFilter {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.maintenanceSearch label,
+.maintenanceFilter label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.maintenanceSearchInput {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+.maintenanceSearchInput span {
+  font-size: 15px;
+}
+
+.maintenanceSearchInput input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+}
+
+.maintenanceSearchInput:focus-within {
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+}
+
+.maintenanceFilter select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  cursor: pointer;
+}
+
+.maintenanceFilter select:focus {
+  outline: none;
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+}
+
+.clearFiltersButton {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.clearFiltersButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.maintenanceResultsHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.maintenanceResultsHeader p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.maintenanceResultsHeader strong {
+  color: #111827;
+}
+
+/* Mobile filters */
+
+@media (max-width: 800px) {
+  .maintenanceFilters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .maintenanceSearch {
+    grid-column: 1 / -1;
+  }
+
+  .clearFiltersButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .maintenanceFilters {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  .maintenanceSearch {
+    grid-column: auto;
+  }
+
+  .clearFiltersButton {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   REPAIRS SEARCH & FILTERS
+   ========================================= */
+
+.repairsFilters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 190px 190px auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid #dedbd4;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.repairsSearch,
+.repairsFilter {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.repairsSearch label,
+.repairsFilter label {
+  color: #526273;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.repairsSearchInput {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+.repairsSearchInput span {
+  font-size: 15px;
+}
+
+.repairsSearchInput input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+}
+
+.repairsSearchInput:focus-within {
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+}
+
+.repairsFilter select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  cursor: pointer;
+}
+
+.repairsFilter select:focus {
+  outline: none;
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+}
+
+.repairsClearFilters {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.repairsClearFilters:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.repairsResultsHeader {
+  margin-bottom: 12px;
+}
+
+.repairsResultsHeader p {
+  margin: 0;
+  color: #687784;
+  font-size: 13px;
+}
+
+.repairsResultsHeader strong {
+  color: #162a3a;
+}
+
+.repairsClearEmptyButton {
+  border: 0;
+  cursor: pointer;
+}
+
+/* Tablet */
+
+@media (max-width: 800px) {
+  .repairsFilters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .repairsSearch {
+    grid-column: 1 / -1;
+  }
+
+  .repairsClearFilters {
+    width: 100%;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 520px) {
+  .repairsFilters {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  .repairsSearch {
+    grid-column: auto;
+  }
+
+  .repairsClearFilters {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   FIXIT LOG — MOBILE FOUNDATION
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* GLOBAL */
+
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  select {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+
+  /* PAGE CONTAINERS */
+
+  .dashboardPage,
+  .maintenancePage,
+  .repairsPage,
+  .costsPage,
+  .formPage {
+    width: 100%;
+    min-height: 100vh;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 100px;
+  }
+
+  .dashboardContainer,
+  .maintenanceContainer,
+  .repairsContainer,
+  .costsContainer,
+  .formContainer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+
+  /* HEADINGS */
+
+  .dashboardHeader h1,
+  .maintenancePageHeader h1,
+  .repairsHeader h1,
+  .costsHeader h1,
+  .formHeader h1 {
+    font-size: clamp(34px, 10vw, 42px);
+    line-height: 1.05;
+    letter-spacing: -1.2px;
+  }
+
+  .dashboardSubtitle,
+  .maintenanceSubtitle,
+  .repairsSubtitle,
+  .costsSubtitle,
+  .formHeader p:last-child {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .backLink,
+  .repairsBackLink {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+
+  /* TOUCH TARGETS */
+
+  .maintenanceAddButton,
+  .repairsAddButton,
+  .dashboardAddButton,
+  .primaryButton,
+  .secondaryButton,
+  .secondaryAction {
+    min-height: 50px;
+  }
+
+  .editButton,
+  .completeButton,
+  .deleteButton,
+  .repairEditButton,
+  .repairCompleteButton,
+  .repairDeleteButton,
+  .clearFiltersButton,
+  .repairsClearFilters {
+    min-height: 44px;
+  }
+
+
+  /* MAINTENANCE HEADER */
+
+  .maintenancePageHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .maintenanceAddButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0;
+    text-align: center;
+  }
+
+
+  /* REPAIRS HEADER */
+
+  .repairsHeader {
+    margin-bottom: 30px;
+  }
+
+  .repairsAddButton {
+    width: 100%;
+  }
+
+
+  /* SEARCH + FILTERS */
+
+  .maintenanceFilters,
+  .repairsFilters {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .maintenanceSearch,
+  .repairsSearch {
+    grid-column: auto;
+  }
+
+  .maintenanceSearchInput,
+  .repairsSearchInput,
+  .maintenanceFilter select,
+  .repairsFilter select {
+    min-height: 48px;
+  }
+
+  .clearFiltersButton,
+  .repairsClearFilters {
+    width: 100%;
+  }
+
+
+  /* MAINTENANCE CARDS */
+
+  .maintenanceItemCard {
+    gap: 13px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .maintenanceItemIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
+
+  .maintenanceItemTop {
+    display: block;
+  }
+
+  .maintenanceItemTop h2 {
+    font-size: 18px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .maintenanceStatus {
+    display: inline-flex;
+    margin-top: 9px;
+  }
+
+  .maintenanceItemDetails {
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .maintenanceNotes {
+    overflow-wrap: anywhere;
+  }
+
+  .maintenanceItemMain > .editButton,
+  .maintenanceItemMain > .completeButton,
+  .maintenanceItemMain > .deleteButton {
+    width: 100%;
+    margin-top: 9px;
+  }
+
+
+  /* REPAIR CARDS */
+
+  .repairCard {
+    border-radius: 16px;
+  }
+
+  .repairCardTop {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .repairIcon {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .repairTitleRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .repairTitleRow h3 {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+  }
+
+  .repairDetails {
+    grid-template-columns: 1fr;
+    margin: 0 16px;
+  }
+
+  .repairDetail {
+    padding: 13px 0;
+  }
+
+  .repairDetail + .repairDetail {
+    border-top: 1px solid #ece9e3;
+    border-left: 0;
+  }
+
+  .repairNotes {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .repairActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 16px;
+  }
+
+  .repairActions a,
+  .repairActions button {
+    width: 100%;
+  }
+
+
+  /* FORMS */
+
+  .maintenanceForm {
+    padding: 20px;
+    gap: 22px;
+    border-radius: 18px;
+  }
+
+  .field input,
+  .field textarea,
+  .costInput,
+  .categoryOption {
+    min-height: 48px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .categoryOption {
+    padding: 11px 8px;
+  }
+
+  .formActions {
+    gap: 10px;
+  }
+
+
+  /* COSTS */
+
+  .costSummaryGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .costSummaryCard {
+    padding: 20px;
+  }
+
+  .costRow {
+    position: relative;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .costRowIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .costRowContent {
+    padding-right: 5px;
+  }
+
+  .costRowContent h3,
+  .costRowContent p {
+    overflow-wrap: anywhere;
+  }
+
+  .costAmount {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+
+  /* NAVIGATION */
+
+  .dashboardNav,
+  .repairsNavigation {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 6px;
+    border-radius: 15px;
+  }
+
+  .dashboardNav a,
+  .repairsNavigation a {
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .dashboardNav a.active,
+  .repairsNavigationActive {
+    background: #f1f3ef;
+    color: #26302b;
+  }
+}
+
+
+/* =========================================
+   EXTRA SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+  .dashboardPage,
+  .maintenancePage,
+  .repairsPage,
+  .costsPage,
+  .formPage {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardNav a,
+  .repairsNavigation a {
+    font-size: 10px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .maintenanceItemCard {
+    gap: 10px;
+  }
+
+  .maintenanceItemIcon {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+}

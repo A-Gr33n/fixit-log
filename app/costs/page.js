@@ -61,18 +61,6 @@ export default function CostsPage() {
     loadCosts();
   }, []);
 
-  const maintenanceTotal = maintenance.reduce(
-    (total, item) => total + Number(item.estimated_cost || 0),
-    0
-  );
-
-  const repairsTotal = repairs.reduce(
-    (total, item) => total + Number(item.cost || 0),
-    0
-  );
-
-  const total = maintenanceTotal + repairsTotal;
-
   const maintenanceItems = maintenance.filter(
     (item) =>
       item.estimated_cost !== null &&
@@ -84,6 +72,18 @@ export default function CostsPage() {
       item.cost !== null &&
       item.cost !== undefined
   );
+
+  const maintenanceTotal = maintenanceItems.reduce(
+    (total, item) => total + Number(item.estimated_cost || 0),
+    0
+  );
+
+  const repairsTotal = repairItems.reduce(
+    (total, item) => total + Number(item.cost || 0),
+    0
+  );
+
+  const total = maintenanceTotal + repairsTotal;
 
   const allCosts = [
     ...maintenanceItems.map((item) => ({
@@ -106,6 +106,10 @@ export default function CostsPage() {
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   function formatDate(dateString) {
+    if (!dateString) {
+      return "No date";
+    }
+
     return new Date(`${dateString}T00:00:00`).toLocaleDateString(
       "en-GB",
       {
@@ -138,25 +142,47 @@ export default function CostsPage() {
 
         {loading ? (
           <div className="costsEmptyState">
-            Loading your costs...
+            <div className="costsEmptyIcon">💷</div>
+
+            <h3>Loading your costs...</h3>
+
+            <p>
+              We're getting your maintenance and repair costs ready.
+            </p>
           </div>
         ) : (
           <>
             <section className="costSummaryGrid">
-              <div className="costSummaryCard total">
-                <p className="eyebrow">TOTAL LOGGED</p>
+              <div className="costSummaryCard costSummaryMain">
+                <div className="costSummaryTop">
+                  <div>
+                    <p className="eyebrow">TOTAL SPENDING</p>
 
-                <h2>£{total.toFixed(2)}</h2>
+                    <h2>£{total.toFixed(2)}</h2>
+                  </div>
 
-                <p>Maintenance and repairs combined.</p>
+                  <div className="costSummaryIcon totalIcon">
+                    £
+                  </div>
+                </div>
+
+                <p>
+                  Your total logged maintenance and repair costs.
+                </p>
               </div>
 
               <div className="costSummaryCard">
-                <div className="costSummaryIcon">🔧</div>
+                <div className="costSummaryTop">
+                  <div>
+                    <p className="eyebrow">MAINTENANCE</p>
 
-                <p className="eyebrow">MAINTENANCE</p>
+                    <h2>£{maintenanceTotal.toFixed(2)}</h2>
+                  </div>
 
-                <h2>£{maintenanceTotal.toFixed(2)}</h2>
+                  <div className="costSummaryIcon">
+                    🔧
+                  </div>
+                </div>
 
                 <p>
                   {maintenanceItems.length}{" "}
@@ -168,11 +194,17 @@ export default function CostsPage() {
               </div>
 
               <div className="costSummaryCard">
-                <div className="costSummaryIcon">🛠️</div>
+                <div className="costSummaryTop">
+                  <div>
+                    <p className="eyebrow">REPAIRS</p>
 
-                <p className="eyebrow">REPAIRS</p>
+                    <h2>£{repairsTotal.toFixed(2)}</h2>
+                  </div>
 
-                <h2>£{repairsTotal.toFixed(2)}</h2>
+                  <div className="costSummaryIcon">
+                    🛠️
+                  </div>
+                </div>
 
                 <p>
                   {repairItems.length}{" "}
@@ -188,8 +220,23 @@ export default function CostsPage() {
               <div className="sectionHeading">
                 <div>
                   <p className="eyebrow">COST HISTORY</p>
+
                   <h2>Where your money has gone</h2>
+
+                  <p className="sectionDescription">
+                    A record of the maintenance and repairs you've
+                    logged.
+                  </p>
                 </div>
+
+                {allCosts.length > 0 && (
+                  <span className="costHistoryCount">
+                    {allCosts.length}{" "}
+                    {allCosts.length === 1
+                      ? "entry"
+                      : "entries"}
+                  </span>
+                )}
               </div>
 
               {allCosts.length === 0 ? (
@@ -202,24 +249,54 @@ export default function CostsPage() {
                     Add a cost to a maintenance item or repair and
                     it will appear here.
                   </p>
+
+                  <div className="emptyStateActions">
+                    <Link
+                      href="/maintenance/new"
+                      className="primaryButton"
+                    >
+                      ＋ Add maintenance
+                    </Link>
+
+                    <Link
+                      href="/repairs/new"
+                      className="secondaryButton"
+                    >
+                      ＋ Add repair
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <div className="costList">
                   {allCosts.map((item) => (
-                    <article className="costRow" key={item.id}>
-                      <div className="costRowIcon">
-                        {item.type === "Repair" ? "🛠️" : "🔧"}
+                    <article
+                      className="costRow"
+                      key={item.id}
+                    >
+                      <div
+                        className={`costRowIcon ${
+                          item.type === "Repair"
+                            ? "repairCostIcon"
+                            : "maintenanceCostIcon"
+                        }`}
+                      >
+                        {item.type === "Repair"
+                          ? "🛠️"
+                          : "🔧"}
                       </div>
 
                       <div className="costRowContent">
-                        <span className="costRowType">
-                          {item.type}
-                        </span>
+                        <div className="costRowTop">
+                          <span className="costRowType">
+                            {item.type}
+                          </span>
+                        </div>
 
                         <h3>{item.title}</h3>
 
                         <p>
-                          {item.category} · {formatDate(item.date)}
+                          {item.category || "General"} ·{" "}
+                          {formatDate(item.date)}
                         </p>
                       </div>
 
@@ -232,24 +309,28 @@ export default function CostsPage() {
               )}
             </section>
 
-            <div className="costsActions">
-              <Link
-                href="/maintenance/new"
-                className="secondaryAction"
-              >
-                ＋ Add maintenance
-              </Link>
+            {allCosts.length > 0 && (
+              <div className="costsActions">
+                <Link
+                  href="/maintenance/new"
+                  className="secondaryAction"
+                >
+                  ＋ Add maintenance
+                </Link>
 
-              <Link
-                href="/repairs/new"
-                className="secondaryAction"
-              >
-                ＋ Add repair
-              </Link>
-            </div>
+                <Link
+                  href="/repairs/new"
+                  className="secondaryAction"
+                >
+                  ＋ Add repair
+                </Link>
+              </div>
+            )}
 
             <nav className="dashboardNav costsBottomNav">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard">
+                Dashboard
+              </Link>
 
               <Link href="/maintenance">
                 Maintenance
@@ -259,7 +340,10 @@ export default function CostsPage() {
                 Repairs
               </Link>
 
-              <Link href="/costs" className="active">
+              <Link
+                href="/costs"
+                className="active"
+              >
                 Costs
               </Link>
             </nav>
