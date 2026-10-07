@@ -6358,3 +6358,263 @@ h1 {
     padding: 15px;
   }
 }
+
+/* =========================================
+   FIXIT LOG — RECURRING MAINTENANCE
+   ========================================= */
+
+.recurringChoice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.recurringChoiceButton {
+  min-height: 48px;
+  padding: 11px 14px;
+
+  border: 1px solid #dfe2de;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #52605a;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.recurringChoiceButton:hover {
+  background: #f7f8f5;
+}
+
+.recurringChoiceButton.selected {
+  border-color: #365747;
+  background: #365747;
+  color: #ffffff;
+}
+
+.recurringPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  margin-top: 5px;
+  padding: 17px;
+
+  border: 1px solid #dce4dc;
+  border-radius: 14px;
+
+  background: #f7faf6;
+}
+
+.recurringPanel > div:first-child strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #30463a;
+  font-size: 13px;
+}
+
+.recurringPanel > div:first-child p {
+  margin: 0;
+
+  color: #718078;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.repeatOptions {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.repeatOption {
+  min-height: 42px;
+
+  padding: 9px 10px;
+
+  border: 1px solid #d9dfd9;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #4e5e55;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.repeatOption:hover {
+  background: #f2f5f1;
+}
+
+.repeatOption.selected {
+  border-color: #547160;
+  background: #e8efe9;
+  color: #304b3b;
+}
+
+.customRepeatField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.customRepeatField > span {
+  color: #4b5e53;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customRepeatField > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customRepeatField input {
+  width: 110px;
+  min-height: 44px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d7ddd7;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #26372f;
+
+  font: inherit;
+  font-size: 14px;
+}
+
+.customRepeatField > div > span {
+  color: #718078;
+
+  font-size: 12px;
+}
+
+.recurringStatusHint {
+  margin: 3px 0 0;
+
+  color: #718078;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.recurringMeta {
+  color: #4f6f5c !important;
+  font-weight: 650;
+}
+
+.lastCompletedText {
+  margin: 10px 0 0;
+
+  color: #718078;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.recurringSuccess {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+
+  margin: -15px 0 24px;
+  padding: 14px 16px;
+
+  border: 1px solid #d7e4d9;
+  border-radius: 13px;
+
+  background: #f3f8f3;
+  color: #355642;
+}
+
+.recurringSuccess > span {
+  flex-shrink: 0;
+
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #dfece1;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.recurringSuccess p {
+  margin: 2px 0 0;
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+  .recurringChoice {
+    gap: 8px;
+  }
+
+  .recurringChoiceButton {
+    min-height: 46px;
+
+    padding: 9px;
+
+    font-size: 12px;
+  }
+
+  .recurringPanel {
+    gap: 14px;
+
+    padding: 14px;
+
+    border-radius: 13px;
+  }
+
+  .repeatOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .repeatOption {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .customRepeatField > div {
+    align-items: center;
+  }
+
+  .customRepeatField input {
+    min-height: 48px;
+
+    font-size: 16px !important;
+  }
+
+  .recurringSuccess {
+    margin-top: -8px;
+  }
+}

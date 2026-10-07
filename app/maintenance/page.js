@@ -1,43 +1,85 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function MaintenancePage() {
-  const [maintenance, setMaintenance] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState(null);
+  const [
+    maintenance,
+    setMaintenance,
+  ] = useState([]);
 
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [
+    updatingId,
+    setUpdatingId,
+  ] = useState(null);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [
+    categoryFilter,
+    setCategoryFilter,
+  ] = useState("All");
+
+  const [
+    statusFilter,
+    setStatusFilter,
+  ] = useState("All");
+
+  const [
+    actionMessage,
+    setActionMessage,
+  ] = useState("");
 
   async function loadMaintenance() {
     try {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
       if (!user) {
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from("maintenance")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("due_date", { ascending: true });
+      const { data, error } =
+        await supabase
+          .from("maintenance")
+          .select("*")
+          .eq(
+            "user_id",
+            user.id
+          )
+          .order("due_date", {
+            ascending: true,
+          });
 
       if (error) {
-        console.error("Could not load maintenance:", error);
+        console.error(
+          "Could not load maintenance:",
+          error
+        );
         return;
       }
 
-      setMaintenance(data || []);
+      setMaintenance(
+        data || []
+      );
     } catch (error) {
-      console.error("Could not load maintenance:", error);
+      console.error(
+        "Could not load maintenance:",
+        error
+      );
     } finally {
       setLoading(false);
     }
@@ -47,75 +89,300 @@ export default function MaintenancePage() {
     loadMaintenance();
   }, []);
 
-  async function toggleCompleted(item) {
+  function addMonthsToDate(
+    dateString,
+    months
+  ) {
+    const parts =
+      dateString.split("-");
+
+    const year =
+      Number(parts[0]);
+
+    const month =
+      Number(parts[1]);
+
+    const day =
+      Number(parts[2]);
+
+    /*
+      Move to the first day of the
+      target month first. This prevents
+      dates such as 31 January from
+      accidentally skipping February.
+    */
+    const target = new Date(
+      year,
+      month - 1 + months,
+      1
+    );
+
+    const lastDay =
+      new Date(
+        target.getFullYear(),
+        target.getMonth() + 1,
+        0
+      ).getDate();
+
+    target.setDate(
+      Math.min(day, lastDay)
+    );
+
+    const finalYear =
+      target.getFullYear();
+
+    const finalMonth =
+      String(
+        target.getMonth() + 1
+      ).padStart(2, "0");
+
+    const finalDay =
+      String(
+        target.getDate()
+      ).padStart(2, "0");
+
+    return `${finalYear}-${finalMonth}-${finalDay}`;
+  }
+
+  function getTodayString() {
+    const today =
+      new Date();
+
+    const year =
+      today.getFullYear();
+
+    const month =
+      String(
+        today.getMonth() + 1
+      ).padStart(2, "0");
+
+    const day =
+      String(
+        today.getDate()
+      ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  async function toggleCompleted(
+    item
+  ) {
     setUpdatingId(item.id);
+    setActionMessage("");
 
-    const { error } = await supabase
-      .from("maintenance")
-      .update({
-        completed: !item.completed,
-      })
-      .eq("id", item.id)
-      .eq("user_id", item.user_id);
+    /*
+      RECURRING ITEM:
+      completing it schedules
+      its next occurrence.
+    */
+    if (
+      item.recurring &&
+      !item.completed &&
+      item.repeat_months
+    ) {
+      const nextDueDate =
+        addMonthsToDate(
+          item.due_date,
+          Number(
+            item.repeat_months
+          )
+        );
 
-    if (error) {
-      console.error("Could not update maintenance:", error);
+      const completedDate =
+        getTodayString();
+
+      const { error } =
+        await supabase
+          .from("maintenance")
+          .update({
+            completed: false,
+            due_date:
+              nextDueDate,
+            last_completed_date:
+              completedDate,
+          })
+          .eq(
+            "id",
+            item.id
+          )
+          .eq(
+            "user_id",
+            item.user_id
+          );
+
+      if (error) {
+        console.error(
+          "Could not update recurring maintenance:",
+          error
+        );
+
+        setActionMessage(
+          "We couldn't schedule the next occurrence."
+        );
+
+        setUpdatingId(null);
+        return;
+      }
+
+      setMaintenance(
+        (current) =>
+          current
+            .map(
+              (
+                maintenanceItem
+              ) =>
+                maintenanceItem.id ===
+                item.id
+                  ? {
+                      ...maintenanceItem,
+                      completed:
+                        false,
+                      due_date:
+                        nextDueDate,
+                      last_completed_date:
+                        completedDate,
+                    }
+                  : maintenanceItem
+            )
+            .sort(
+              (a, b) =>
+                new Date(
+                  a.due_date
+                ) -
+                new Date(
+                  b.due_date
+                )
+            )
+      );
+
+      setActionMessage(
+        `"${item.title}" completed. Next due ${formatDate(
+          nextDueDate
+        )}.`
+      );
+
       setUpdatingId(null);
       return;
     }
 
-    setMaintenance((current) =>
-      current.map((maintenanceItem) =>
-        maintenanceItem.id === item.id
-          ? {
-              ...maintenanceItem,
-              completed: !item.completed,
-            }
-          : maintenanceItem
-      )
+    /*
+      NORMAL ONE-OFF ITEM
+    */
+
+    const newCompleted =
+      !item.completed;
+
+    const updates = {
+      completed:
+        newCompleted,
+    };
+
+    if (newCompleted) {
+      updates.last_completed_date =
+        getTodayString();
+    } else {
+      updates.last_completed_date =
+        null;
+    }
+
+    const { error } =
+      await supabase
+        .from("maintenance")
+        .update(updates)
+        .eq("id", item.id)
+        .eq(
+          "user_id",
+          item.user_id
+        );
+
+    if (error) {
+      console.error(
+        "Could not update maintenance:",
+        error
+      );
+
+      setUpdatingId(null);
+      return;
+    }
+
+    setMaintenance(
+      (current) =>
+        current.map(
+          (
+            maintenanceItem
+          ) =>
+            maintenanceItem.id ===
+            item.id
+              ? {
+                  ...maintenanceItem,
+                  ...updates,
+                }
+              : maintenanceItem
+        )
     );
 
     setUpdatingId(null);
   }
 
-  async function deleteMaintenance(item) {
-    const confirmed = window.confirm(
-      `Remove "${item.title}"? This cannot be undone.`
-    );
+  async function deleteMaintenance(
+    item
+  ) {
+    const confirmed =
+      window.confirm(
+        `Remove "${item.title}"? This cannot be undone.`
+      );
 
     if (!confirmed) {
       return;
     }
 
     setUpdatingId(item.id);
+    setActionMessage("");
 
-    const { error } = await supabase
-      .from("maintenance")
-      .delete()
-      .eq("id", item.id)
-      .eq("user_id", item.user_id);
+    const { error } =
+      await supabase
+        .from("maintenance")
+        .delete()
+        .eq("id", item.id)
+        .eq(
+          "user_id",
+          item.user_id
+        );
 
     if (error) {
-      console.error("Could not delete maintenance:", error);
+      console.error(
+        "Could not delete maintenance:",
+        error
+      );
+
       setUpdatingId(null);
       return;
     }
 
-    setMaintenance((current) =>
-      current.filter(
-        (maintenanceItem) => maintenanceItem.id !== item.id
-      )
+    setMaintenance(
+      (current) =>
+        current.filter(
+          (
+            maintenanceItem
+          ) =>
+            maintenanceItem.id !==
+            item.id
+        )
     );
 
     setUpdatingId(null);
   }
 
-  function formatDate(dateString) {
+  function formatDate(
+    dateString
+  ) {
     if (!dateString) {
       return "No date";
     }
 
-    return new Date(`${dateString}T00:00:00`).toLocaleDateString(
+    return new Date(
+      `${dateString}T00:00:00`
+    ).toLocaleDateString(
       "en-GB",
       {
         day: "numeric",
@@ -130,10 +397,20 @@ export default function MaintenancePage() {
       return "Completed";
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today =
+      new Date();
 
-    const dueDate = new Date(`${item.due_date}T00:00:00`);
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const dueDate =
+      new Date(
+        `${item.due_date}T00:00:00`
+      );
 
     if (dueDate < today) {
       return "Overdue";
@@ -142,41 +419,107 @@ export default function MaintenancePage() {
     return "Upcoming";
   }
 
-  const categories = useMemo(() => {
-    const uniqueCategories = maintenance
-      .map((item) => item.category)
-      .filter(Boolean);
+  function getRepeatLabel(
+    months
+  ) {
+    const value =
+      Number(months);
 
-    return [...new Set(uniqueCategories)].sort();
-  }, [maintenance]);
+    if (value === 1) {
+      return "Every month";
+    }
 
-  const filteredMaintenance = useMemo(() => {
-    const searchTerm = search.trim().toLowerCase();
+    if (value === 3) {
+      return "Every 3 months";
+    }
 
-    return maintenance.filter((item) => {
-      const status = getStatus(item);
+    if (value === 6) {
+      return "Every 6 months";
+    }
 
-      const matchesSearch =
-        searchTerm === "" ||
-        item.title?.toLowerCase().includes(searchTerm) ||
-        item.notes?.toLowerCase().includes(searchTerm) ||
-        item.category?.toLowerCase().includes(searchTerm);
+    if (value === 12) {
+      return "Every year";
+    }
 
-      const matchesCategory =
-        categoryFilter === "All" ||
-        item.category === categoryFilter;
+    if (value === 24) {
+      return "Every 2 years";
+    }
 
-      const matchesStatus =
-        statusFilter === "All" ||
-        status === statusFilter;
+    return `Every ${value} months`;
+  }
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesStatus
+  const categories =
+    useMemo(() => {
+      const uniqueCategories =
+        maintenance
+          .map(
+            (item) =>
+              item.category
+          )
+          .filter(Boolean);
+
+      return [
+        ...new Set(
+          uniqueCategories
+        ),
+      ].sort();
+    }, [maintenance]);
+
+  const filteredMaintenance =
+    useMemo(() => {
+      const searchTerm =
+        search
+          .trim()
+          .toLowerCase();
+
+      return maintenance.filter(
+        (item) => {
+          const status =
+            getStatus(item);
+
+          const matchesSearch =
+            searchTerm === "" ||
+            item.title
+              ?.toLowerCase()
+              .includes(
+                searchTerm
+              ) ||
+            item.notes
+              ?.toLowerCase()
+              .includes(
+                searchTerm
+              ) ||
+            item.category
+              ?.toLowerCase()
+              .includes(
+                searchTerm
+              );
+
+          const matchesCategory =
+            categoryFilter ===
+              "All" ||
+            item.category ===
+              categoryFilter;
+
+          const matchesStatus =
+            statusFilter ===
+              "All" ||
+            status ===
+              statusFilter;
+
+          return (
+            matchesSearch &&
+            matchesCategory &&
+            matchesStatus
+          );
+        }
       );
-    });
-  }, [maintenance, search, categoryFilter, statusFilter]);
+    }, [
+      maintenance,
+      search,
+      categoryFilter,
+      statusFilter,
+    ]);
 
   const filtersActive =
     search.trim() !== "" ||
@@ -194,16 +537,22 @@ export default function MaintenancePage() {
       <div className="maintenanceContainer">
         <header className="maintenancePageHeader">
           <div>
-            <Link href="/dashboard" className="backLink">
+            <Link
+              href="/dashboard"
+              className="backLink"
+            >
               ← Dashboard
             </Link>
 
-            <p className="eyebrow">YOUR HOME</p>
+            <p className="eyebrow">
+              YOUR HOME
+            </p>
 
             <h1>Maintenance</h1>
 
             <p className="maintenanceSubtitle">
-              Keep track of everything your home needs.
+              Keep track of everything
+              your home needs.
             </p>
           </div>
 
@@ -215,18 +564,35 @@ export default function MaintenancePage() {
           </Link>
         </header>
 
+        {actionMessage && (
+          <div className="recurringSuccess">
+            <span>✓</span>
+
+            <p>
+              {actionMessage}
+            </p>
+          </div>
+        )}
+
         {loading ? (
           <div className="maintenanceEmptyState">
             Loading your maintenance...
           </div>
-        ) : maintenance.length === 0 ? (
+        ) : maintenance.length ===
+          0 ? (
           <div className="maintenanceEmptyState">
-            <div className="maintenanceEmptyIcon">🔧</div>
+            <div className="maintenanceEmptyIcon">
+              🔧
+            </div>
 
-            <h2>Nothing logged yet</h2>
+            <h2>
+              Nothing logged yet
+            </h2>
 
             <p>
-              Add your first maintenance item and FixIt Log will keep it
+              Add your first
+              maintenance item and
+              FixIt Log will keep it
               organised for you.
             </p>
 
@@ -253,8 +619,13 @@ export default function MaintenancePage() {
                     type="text"
                     placeholder="Search maintenance..."
                     value={search}
-                    onChange={(event) =>
-                      setSearch(event.target.value)
+                    onChange={(
+                      event
+                    ) =>
+                      setSearch(
+                        event.target
+                          .value
+                      )
                     }
                   />
                 </div>
@@ -267,21 +638,36 @@ export default function MaintenancePage() {
 
                 <select
                   id="maintenance-category"
-                  value={categoryFilter}
-                  onChange={(event) =>
-                    setCategoryFilter(event.target.value)
+                  value={
+                    categoryFilter
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setCategoryFilter(
+                      event.target
+                        .value
+                    )
                   }
                 >
-                  <option value="All">All categories</option>
+                  <option value="All">
+                    All categories
+                  </option>
 
-                  {categories.map((category) => (
-                    <option
-                      value={category}
-                      key={category}
-                    >
-                      {category}
-                    </option>
-                  ))}
+                  {categories.map(
+                    (category) => (
+                      <option
+                        value={
+                          category
+                        }
+                        key={
+                          category
+                        }
+                      >
+                        {category}
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -292,15 +678,33 @@ export default function MaintenancePage() {
 
                 <select
                   id="maintenance-status"
-                  value={statusFilter}
-                  onChange={(event) =>
-                    setStatusFilter(event.target.value)
+                  value={
+                    statusFilter
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setStatusFilter(
+                      event.target
+                        .value
+                    )
                   }
                 >
-                  <option value="All">All statuses</option>
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Overdue">Overdue</option>
-                  <option value="Completed">Completed</option>
+                  <option value="All">
+                    All statuses
+                  </option>
+
+                  <option value="Upcoming">
+                    Upcoming
+                  </option>
+
+                  <option value="Overdue">
+                    Overdue
+                  </option>
+
+                  <option value="Completed">
+                    Completed
+                  </option>
                 </select>
               </div>
 
@@ -308,7 +712,9 @@ export default function MaintenancePage() {
                 <button
                   type="button"
                   className="clearFiltersButton"
-                  onClick={clearFilters}
+                  onClick={
+                    clearFilters
+                  }
                 >
                   Clear filters
                 </button>
@@ -319,137 +725,215 @@ export default function MaintenancePage() {
               <p>
                 Showing{" "}
                 <strong>
-                  {filteredMaintenance.length}
+                  {
+                    filteredMaintenance.length
+                  }
                 </strong>{" "}
                 of{" "}
-                <strong>{maintenance.length}</strong>{" "}
-                {maintenance.length === 1
+                <strong>
+                  {
+                    maintenance.length
+                  }
+                </strong>{" "}
+                {maintenance.length ===
+                1
                   ? "item"
                   : "items"}
               </p>
             </div>
 
-            {filteredMaintenance.length === 0 ? (
+            {filteredMaintenance.length ===
+            0 ? (
               <div className="maintenanceEmptyState">
                 <div className="maintenanceEmptyIcon">
                   🔎
                 </div>
 
-                <h2>No matching maintenance</h2>
+                <h2>
+                  No matching maintenance
+                </h2>
 
                 <p>
-                  Try changing your search or filters to find what
+                  Try changing your search
+                  or filters to find what
                   you're looking for.
                 </p>
 
                 <button
                   type="button"
                   className="primaryButton maintenanceEmptyButton"
-                  onClick={clearFilters}
+                  onClick={
+                    clearFilters
+                  }
                 >
                   Clear filters
                 </button>
               </div>
             ) : (
               <section className="maintenancePageList">
-                {filteredMaintenance.map((item) => {
-                  const status = getStatus(item);
+                {filteredMaintenance.map(
+                  (item) => {
+                    const status =
+                      getStatus(item);
 
-                  return (
-                    <article
-                      className={`maintenanceItemCard ${
-                        item.completed ? "completed" : ""
-                      }`}
-                      key={item.id}
-                    >
-                      <div className="maintenanceItemIcon">
-                        🔧
-                      </div>
+                    return (
+                      <article
+                        className={`maintenanceItemCard ${
+                          item.completed
+                            ? "completed"
+                            : ""
+                        }`}
+                        key={
+                          item.id
+                        }
+                      >
+                        <div className="maintenanceItemIcon">
+                          {item.recurring
+                            ? "↻"
+                            : "🔧"}
+                        </div>
 
-                      <div className="maintenanceItemMain">
-                        <div className="maintenanceItemTop">
-                          <div>
-                            <p className="maintenanceCategory">
-                              {item.category}
-                            </p>
+                        <div className="maintenanceItemMain">
+                          <div className="maintenanceItemTop">
+                            <div>
+                              <p className="maintenanceCategory">
+                                {
+                                  item.category
+                                }
+                              </p>
 
-                            <h2>{item.title}</h2>
+                              <h2>
+                                {
+                                  item.title
+                                }
+                              </h2>
+                            </div>
+
+                            <span
+                              className={`maintenanceStatus ${status
+                                .toLowerCase()
+                                .replace(
+                                  " ",
+                                  "-"
+                                )}`}
+                            >
+                              {status}
+                            </span>
                           </div>
 
-                          <span
-                            className={`maintenanceStatus ${status
-                              .toLowerCase()
-                              .replace(" ", "-")}`}
-                          >
-                            {status}
-                          </span>
-                        </div>
+                          <div className="maintenanceItemDetails">
+                            <span>
+                              📅{" "}
+                              {formatDate(
+                                item.due_date
+                              )}
+                            </span>
 
-                        <div className="maintenanceItemDetails">
-                          <span>
-                            📅 {formatDate(item.due_date)}
-                          </span>
+                            {item.recurring &&
+                              item.repeat_months && (
+                                <span className="recurringMeta">
+                                  ↻{" "}
+                                  {getRepeatLabel(
+                                    item.repeat_months
+                                  )}
+                                </span>
+                              )}
 
-                          {item.estimated_cost !== null &&
-                            item.estimated_cost !== undefined && (
-                              <span>
-                                💷 £
-                                {Number(
-                                  item.estimated_cost
-                                ).toFixed(2)}
-                              </span>
+                            {item.estimated_cost !==
+                              null &&
+                              item.estimated_cost !==
+                                undefined && (
+                                <span>
+                                  💷 £
+                                  {Number(
+                                    item.estimated_cost
+                                  ).toFixed(
+                                    2
+                                  )}
+                                </span>
+                              )}
+                          </div>
+
+                          {item.last_completed_date &&
+                            item.recurring && (
+                              <p className="lastCompletedText">
+                                Last completed{" "}
+                                {formatDate(
+                                  item.last_completed_date
+                                )}
+                              </p>
                             )}
+
+                          {item.notes && (
+                            <p className="maintenanceNotes">
+                              {
+                                item.notes
+                              }
+                            </p>
+                          )}
+
+                          <div className="maintenanceItemActions">
+                            <Link
+                              href={`/maintenance/edit/${item.id}`}
+                              className="editButton"
+                            >
+                              Edit
+                            </Link>
+
+                            <button
+                              type="button"
+                              className="completeButton"
+                              onClick={() =>
+                                toggleCompleted(
+                                  item
+                                )
+                              }
+                              disabled={
+                                updatingId ===
+                                item.id
+                              }
+                            >
+                              {updatingId ===
+                              item.id
+                                ? "Updating..."
+                                : item.recurring &&
+                                  !item.completed
+                                ? "✓ Complete & schedule next"
+                                : item.completed
+                                ? "Mark as open"
+                                : "Mark as completed"}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="deleteButton"
+                              onClick={() =>
+                                deleteMaintenance(
+                                  item
+                                )
+                              }
+                              disabled={
+                                updatingId ===
+                                item.id
+                              }
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-
-                        {item.notes && (
-                          <p className="maintenanceNotes">
-                            {item.notes}
-                          </p>
-                        )}
-
-                        <Link
-                          href={`/maintenance/edit/${item.id}`}
-                          className="editButton"
-                        >
-                          Edit
-                        </Link>
-
-                        <button
-                          type="button"
-                          className="completeButton"
-                          onClick={() =>
-                            toggleCompleted(item)
-                          }
-                          disabled={updatingId === item.id}
-                        >
-                          {updatingId === item.id
-                            ? "Updating..."
-                            : item.completed
-                            ? "Mark as open"
-                            : "Mark as completed"}
-                        </button>
-
-                        <button
-                          type="button"
-                          className="deleteButton"
-                          onClick={() =>
-                            deleteMaintenance(item)
-                          }
-                          disabled={updatingId === item.id}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
+                      </article>
+                    );
+                  }
+                )}
               </section>
             )}
           </>
         )}
 
         <nav className="dashboardNav maintenanceBottomNav">
-          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/dashboard">
+            Dashboard
+          </Link>
 
           <Link
             href="/maintenance"
@@ -458,9 +942,13 @@ export default function MaintenancePage() {
             Maintenance
           </Link>
 
-          <Link href="/repairs">Repairs</Link>
+          <Link href="/repairs">
+            Repairs
+          </Link>
 
-          <Link href="/costs">Costs</Link>
+          <Link href="/costs">
+            Costs
+          </Link>
         </nav>
       </div>
     </main>

@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
 import { supabase } from "../../../../lib/supabase";
 
 const categories = [
@@ -17,22 +23,59 @@ const categories = [
   "Other",
 ];
 
+const repeatOptions = [
+  { value: 1, label: "Every month" },
+  { value: 3, label: "Every 3 months" },
+  { value: 6, label: "Every 6 months" },
+  { value: 12, label: "Every year" },
+  { value: 24, label: "Every 2 years" },
+];
+
 export default function EditMaintenancePage() {
   const router = useRouter();
   const params = useParams();
 
   const id = params.id;
 
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Boiler");
-  const [dueDate, setDueDate] = useState("");
-  const [estimatedCost, setEstimatedCost] = useState("");
-  const [notes, setNotes] = useState("");
-  const [completed, setCompleted] = useState(false);
+  const [title, setTitle] =
+    useState("");
+  const [category, setCategory] =
+    useState("Boiler");
+  const [dueDate, setDueDate] =
+    useState("");
+  const [
+    estimatedCost,
+    setEstimatedCost,
+  ] = useState("");
+  const [notes, setNotes] =
+    useState("");
+  const [completed, setCompleted] =
+    useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [recurring, setRecurring] =
+    useState(false);
+
+  const [
+    repeatMonths,
+    setRepeatMonths,
+  ] = useState(12);
+
+  const [
+    customRepeatMonths,
+    setCustomRepeatMonths,
+  ] = useState("");
+
+  const [
+    usingCustomRepeat,
+    setUsingCustomRepeat,
+  ] = useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+  const [saving, setSaving] =
+    useState(false);
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     async function loadMaintenance() {
@@ -40,14 +83,18 @@ export default function EditMaintenancePage() {
         const {
           data: { user },
           error: userError,
-        } = await supabase.auth.getUser();
+        } =
+          await supabase.auth.getUser();
 
         if (userError || !user) {
           router.push("/");
           return;
         }
 
-        const { data, error: loadError } = await supabase
+        const {
+          data,
+          error: loadError,
+        } = await supabase
           .from("maintenance")
           .select("*")
           .eq("id", id)
@@ -69,16 +116,70 @@ export default function EditMaintenancePage() {
         }
 
         setTitle(data.title || "");
-        setCategory(data.category || "Boiler");
-        setDueDate(data.due_date || "");
+
+        setCategory(
+          data.category || "Boiler"
+        );
+
+        setDueDate(
+          data.due_date || ""
+        );
+
         setEstimatedCost(
-          data.estimated_cost !== null &&
-          data.estimated_cost !== undefined
-            ? String(data.estimated_cost)
+          data.estimated_cost !==
+            null &&
+            data.estimated_cost !==
+              undefined
+            ? String(
+                data.estimated_cost
+              )
             : ""
         );
-        setNotes(data.notes || "");
-        setCompleted(Boolean(data.completed));
+
+        setNotes(
+          data.notes || ""
+        );
+
+        setCompleted(
+          Boolean(data.completed)
+        );
+
+        const isRecurring =
+          Boolean(data.recurring);
+
+        setRecurring(isRecurring);
+
+        const savedRepeatMonths =
+          Number(
+            data.repeat_months || 12
+          );
+
+        const standardOption =
+          repeatOptions.some(
+            (option) =>
+              option.value ===
+              savedRepeatMonths
+          );
+
+        if (standardOption) {
+          setRepeatMonths(
+            savedRepeatMonths
+          );
+
+          setUsingCustomRepeat(
+            false
+          );
+        } else if (isRecurring) {
+          setUsingCustomRepeat(
+            true
+          );
+
+          setCustomRepeatMonths(
+            String(
+              savedRepeatMonths
+            )
+          );
+        }
       } catch (error) {
         console.error(
           "Could not load maintenance:",
@@ -98,82 +199,136 @@ export default function EditMaintenancePage() {
     }
   }, [id, router]);
 
-  async function handleSubmit(event) {
-  event.preventDefault();
+  function getFinalRepeatMonths() {
+    if (!recurring) {
+      return null;
+    }
 
-  if (!title.trim() || !dueDate) {
-    setError("Please enter a title and due date.");
-    return;
+    if (usingCustomRepeat) {
+      const customValue =
+        Number(
+          customRepeatMonths
+        );
+
+      if (
+        !Number.isInteger(
+          customValue
+        ) ||
+        customValue < 1 ||
+        customValue > 120
+      ) {
+        return null;
+      }
+
+      return customValue;
+    }
+
+    return Number(
+      repeatMonths
+    );
   }
 
-  setSaving(true);
-  setError("");
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setError("Please sign in before editing maintenance.");
-      setSaving(false);
+    if (
+      !title.trim() ||
+      !dueDate
+    ) {
+      setError(
+        "Please enter a title and due date."
+      );
       return;
     }
 
-    const updates = {
-      title: title.trim(),
-      category,
-      due_date: dueDate,
-      estimated_cost: estimatedCost
-        ? Number(estimatedCost)
-        : null,
-      notes: notes.trim() || null,
-      completed,
-    };
+    const finalRepeatMonths =
+      getFinalRepeatMonths();
 
-    console.log("UPDATING MAINTENANCE:", {
-      id,
-      user_id: user.id,
-      updates,
-    });
+    if (
+      recurring &&
+      finalRepeatMonths === null
+    ) {
+      setError(
+        "Please choose a valid repeat interval between 1 and 120 months."
+      );
+      return;
+    }
 
-    const { data, error: updateError } = await supabase
-      .from("maintenance")
-      .update(updates)
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
+    setSaving(true);
+    setError("");
 
-    console.log("UPDATED MAINTENANCE:", data);
-    console.log("UPDATE ERROR:", updateError);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } =
+        await supabase.auth.getUser();
 
-    if (updateError) {
+      if (userError || !user) {
+        setError(
+          "Please sign in before editing maintenance."
+        );
+
+        setSaving(false);
+        return;
+      }
+
+      const updates = {
+        title: title.trim(),
+        category,
+        due_date: dueDate,
+        estimated_cost:
+          estimatedCost
+            ? Number(
+                estimatedCost
+              )
+            : null,
+        notes:
+          notes.trim() || null,
+        completed,
+        recurring,
+        repeat_months:
+          finalRepeatMonths,
+      };
+
+      const {
+        error: updateError,
+      } = await supabase
+        .from("maintenance")
+        .update(updates)
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (updateError) {
+        console.error(
+          "Could not update maintenance:",
+          updateError
+        );
+
+        setError(
+          "We couldn't save your changes. Please try again."
+        );
+
+        setSaving(false);
+        return;
+      }
+
+      router.push(
+        "/maintenance"
+      );
+    } catch (error) {
       console.error(
         "Could not update maintenance:",
-        updateError
+        error
       );
 
       setError(
-        "We couldn't save your changes. Please try again."
+        "Something went wrong. Please try again."
       );
 
       setSaving(false);
-      return;
     }
-
-    router.push("/maintenance");
-  } catch (error) {
-    console.error(
-      "Could not update maintenance:",
-      error
-    );
-
-    setError("Something went wrong. Please try again.");
-    setSaving(false);
   }
-}
 
   if (loading) {
     return (
@@ -198,12 +353,17 @@ export default function EditMaintenancePage() {
         </Link>
 
         <div className="formHeader">
-          <p className="eyebrow">YOUR HOME</p>
+          <p className="eyebrow">
+            YOUR HOME
+          </p>
 
-          <h1>Edit maintenance</h1>
+          <h1>
+            Edit maintenance
+          </h1>
 
           <p>
-            Correct or update the details for this
+            Correct or update the
+            details for this
             maintenance item.
           </p>
         </div>
@@ -213,13 +373,17 @@ export default function EditMaintenancePage() {
           onSubmit={handleSubmit}
         >
           <label className="field">
-            <span>What needs doing?</span>
+            <span>
+              What needs doing?
+            </span>
 
             <input
               type="text"
               value={title}
               onChange={(event) =>
-                setTitle(event.target.value)
+                setTitle(
+                  event.target.value
+                )
               }
               placeholder="e.g. Boiler service"
               autoFocus
@@ -230,22 +394,26 @@ export default function EditMaintenancePage() {
             <span>Category</span>
 
             <div className="categoryGrid">
-              {categories.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={`categoryOption ${
-                    category === item
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setCategory(item)
-                  }
-                >
-                  {item}
-                </button>
-              ))}
+              {categories.map(
+                (item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`categoryOption ${
+                      category === item
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setCategory(
+                        item
+                      )
+                    }
+                  >
+                    {item}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -256,15 +424,155 @@ export default function EditMaintenancePage() {
               type="date"
               value={dueDate}
               onChange={(event) =>
-                setDueDate(event.target.value)
+                setDueDate(
+                  event.target.value
+                )
               }
             />
           </label>
 
+          {/* RECURRING */}
+
+          <div className="field">
+            <span>
+              Does this repeat?
+            </span>
+
+            <div className="recurringChoice">
+              <button
+                type="button"
+                className={`recurringChoiceButton ${
+                  !recurring
+                    ? "selected"
+                    : ""
+                }`}
+                onClick={() =>
+                  setRecurring(false)
+                }
+              >
+                One-off
+              </button>
+
+              <button
+                type="button"
+                className={`recurringChoiceButton ${
+                  recurring
+                    ? "selected"
+                    : ""
+                }`}
+                onClick={() =>
+                  setRecurring(true)
+                }
+              >
+                ↻ Repeats
+              </button>
+            </div>
+
+            {recurring && (
+              <div className="recurringPanel">
+                <div>
+                  <strong>
+                    Repeat schedule
+                  </strong>
+
+                  <p>
+                    Completing this
+                    maintenance will
+                    automatically schedule
+                    the next due date.
+                  </p>
+                </div>
+
+                <div className="repeatOptions">
+                  {repeatOptions.map(
+                    (option) => (
+                      <button
+                        key={
+                          option.value
+                        }
+                        type="button"
+                        className={`repeatOption ${
+                          !usingCustomRepeat &&
+                          repeatMonths ===
+                            option.value
+                            ? "selected"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setUsingCustomRepeat(
+                            false
+                          );
+
+                          setRepeatMonths(
+                            option.value
+                          );
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    type="button"
+                    className={`repeatOption ${
+                      usingCustomRepeat
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setUsingCustomRepeat(
+                        true
+                      )
+                    }
+                  >
+                    Custom
+                  </button>
+                </div>
+
+                {usingCustomRepeat && (
+                  <label className="customRepeatField">
+                    <span>
+                      Repeat every
+                    </span>
+
+                    <div>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        step="1"
+                        value={
+                          customRepeatMonths
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          setCustomRepeatMonths(
+                            event
+                              .target
+                              .value
+                          )
+                        }
+                        placeholder="12"
+                      />
+
+                      <span>
+                        months
+                      </span>
+                    </div>
+                  </label>
+                )}
+              </div>
+            )}
+          </div>
+
           <label className="field">
             <span>
               Estimated cost{" "}
-              <small>(optional)</small>
+              <small>
+                (optional)
+              </small>
             </span>
 
             <div className="costInput">
@@ -274,7 +582,9 @@ export default function EditMaintenancePage() {
                 type="number"
                 min="0"
                 step="0.01"
-                value={estimatedCost}
+                value={
+                  estimatedCost
+                }
                 onChange={(event) =>
                   setEstimatedCost(
                     event.target.value
@@ -287,13 +597,18 @@ export default function EditMaintenancePage() {
 
           <label className="field">
             <span>
-              Notes <small>(optional)</small>
+              Notes{" "}
+              <small>
+                (optional)
+              </small>
             </span>
 
             <textarea
               value={notes}
               onChange={(event) =>
-                setNotes(event.target.value)
+                setNotes(
+                  event.target.value
+                )
               }
               placeholder="Anything else you want to remember..."
               rows="4"
@@ -306,16 +621,30 @@ export default function EditMaintenancePage() {
             <button
               type="button"
               className={`categoryOption ${
-                completed ? "selected" : ""
+                completed
+                  ? "selected"
+                  : ""
               }`}
               onClick={() =>
-                setCompleted(!completed)
+                setCompleted(
+                  !completed
+                )
               }
             >
               {completed
                 ? "✓ Completed"
                 : "Mark as completed"}
             </button>
+
+            {recurring && (
+              <p className="recurringStatusHint">
+                ↻ For recurring maintenance,
+                using “Mark as completed”
+                from the Maintenance page
+                will schedule the next
+                occurrence automatically.
+              </p>
+            )}
           </div>
 
           {error && (
