@@ -48,18 +48,96 @@ export default function RepairsPage() {
   }, []);
 
   async function toggleCompleted(repair) {
-    setUpdatingId(repair.id);
+  setUpdatingId(repair.id);
 
-    const { error } = await supabase
-      .from("repairs")
-      .update({
-        completed: !repair.completed,
-      })
-      .eq("id", repair.id)
-      .eq("user_id", repair.user_id);
+  /*
+    COMPLETING A REPAIR
+
+    Save a permanent Home History
+    record first, then mark the live
+    repair as completed.
+  */
+  if (!repair.completed) {
+    const today = new Date();
+
+    const year = today.getFullYear();
+
+    const month = String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      today.getDate()
+    ).padStart(2, "0");
+
+    const completedDate =
+      `${year}-${month}-${day}`;
+
+    const {
+      error: historyError,
+    } = await supabase
+      .from("home_history")
+      .insert({
+        user_id: repair.user_id,
+
+        record_type: "repair",
+
+        source_id: repair.id,
+
+        title: repair.title,
+
+     category: repair.category || null,
+
+        completed_date:
+          completedDate,
+
+        cost:
+          repair.cost !== null &&
+          repair.cost !== undefined &&
+          repair.cost !== ""
+            ? Number(repair.cost)
+            : null,
+
+        notes:
+          repair.notes || null,
+      });
+
+    if (historyError) {
+      console.error(
+        "Could not create repair history:",
+        historyError
+      );
+
+      window.alert(
+        "We couldn't save this repair to Home History, so it was left open."
+      );
+
+      setUpdatingId(null);
+      return;
+    }
+
+    const { error } =
+      await supabase
+        .from("repairs")
+        .update({
+          completed: true,
+        })
+        .eq("id", repair.id)
+        .eq(
+          "user_id",
+          repair.user_id
+        );
 
     if (error) {
-      console.error("Could not update repair:", error);
+      console.error(
+        "Could not complete repair:",
+        error
+      );
+
+      window.alert(
+        "The repair was saved to Home History, but we couldn't mark it as completed."
+      );
+
       setUpdatingId(null);
       return;
     }
@@ -69,44 +147,224 @@ export default function RepairsPage() {
         item.id === repair.id
           ? {
               ...item,
-              completed: !repair.completed,
+              completed: true,
             }
           : item
       )
     );
 
     setUpdatingId(null);
+    return;
   }
 
-  async function deleteRepair(repair) {
-    const confirmed = window.confirm(
+  /*
+    REOPENING A REPAIR
+
+    The historical completion stays
+    in Home History, just like our
+    one-off maintenance behaviour.
+  */
+
+  const { error } =
+    await supabase
+      .from("repairs")
+      .update({
+        completed: false,
+      })
+      .eq("id", repair.id)
+      .eq(
+        "user_id",
+        repair.user_id
+      );
+
+  if (error) {
+    console.error(
+      "Could not reopen repair:",
+      error
+    );
+
+    window.alert(
+      "We couldn't reopen this repair."
+    );
+
+    setUpdatingId(null);
+    return;
+  }
+
+  setRepairs((current) =>
+    current.map((item) =>
+      item.id === repair.id
+        ? {
+            ...item,
+            completed: false,
+          }
+        : item
+    )
+  );
+
+  setUpdatingId(null);
+}
+
+async function deleteRepair(repair) {
+  const confirmed =
+    window.confirm(
       `Remove "${repair.title}"? This cannot be undone.`
     );
 
-    if (!confirmed) {
-      return;
-    }
+  if (!confirmed) {
+    return;
+  }
 
-    setUpdatingId(repair.id);
+  setUpdatingId(
+    repair.id
+  );
 
-    const { error } = await supabase
-      .from("repairs")
-      .delete()
-      .eq("id", repair.id)
-      .eq("user_id", repair.user_id);
+  try {
+    /*
+      Find documents attached
+      to this repair.
+    */
 
-    if (error) {
-      console.error("Could not delete repair:", error);
+    const {
+      data: documents,
+      error: documentsError,
+    } = await supabase
+      .from("documents")
+      .select(
+        "id, file_path"
+      )
+      .eq(
+        "repair_id",
+        repair.id
+      )
+      .eq(
+        "user_id",
+        repair.user_id
+      );
+
+    if (documentsError) {
+      console.error(
+        "Could not check repair documents:",
+        documentsError
+      );
+
+      window.alert(
+        "We couldn't check this repair's documents, so the repair was not removed."
+      );
+
       setUpdatingId(null);
       return;
     }
 
-    setRepairs((current) =>
-      current.filter((item) => item.id !== repair.id)
+
+    /*
+      Remove the actual files from
+      Supabase Storage.
+    */
+
+    if (
+      documents &&
+      documents.length > 0
+    ) {
+      const filePaths =
+        documents
+          .map(
+            (document) =>
+              document.file_path
+          )
+          .filter(Boolean);
+
+      if (
+        filePaths.length > 0
+      ) {
+        const {
+          error: storageError,
+        } =
+          await supabase.storage
+            .from(
+              "home-documents"
+            )
+            .remove(
+              filePaths
+            );
+
+        if (storageError) {
+          console.error(
+            "Could not remove repair files:",
+            storageError
+          );
+
+          window.alert(
+            "We couldn't remove this repair's documents, so the repair was left in place."
+          );
+
+          setUpdatingId(null);
+          return;
+        }
+      }
+    }
+
+
+    /*
+      Delete the repair.
+
+      Its documents table rows are
+      removed automatically by the
+      database relationship.
+    */
+
+    const {
+      error: deleteError,
+    } = await supabase
+      .from("repairs")
+      .delete()
+      .eq(
+        "id",
+        repair.id
+      )
+      .eq(
+        "user_id",
+        repair.user_id
+      );
+
+    if (deleteError) {
+      console.error(
+        "Could not delete repair:",
+        deleteError
+      );
+
+      window.alert(
+        "We couldn't remove this repair."
+      );
+
+      setUpdatingId(null);
+      return;
+    }
+
+
+    setRepairs(
+      (current) =>
+        current.filter(
+          (item) =>
+            item.id !==
+            repair.id
+        )
     );
 
+  } catch (deleteCatchError) {
+    console.error(
+      "Could not delete repair:",
+      deleteCatchError
+    );
+
+    window.alert(
+      "Something went wrong while removing this repair."
+    );
+
+  } finally {
     setUpdatingId(null);
   }
+}
 
   function formatDate(dateString) {
     if (!dateString) {

@@ -500,42 +500,135 @@ export default function MaintenancePage() {
     setUpdatingId(null);
   }
 
-  async function deleteMaintenance(
-    item
-  ) {
-    const confirmed =
-      window.confirm(
-        `Remove "${item.title}"? This cannot be undone.`
+ async function deleteMaintenance(
+  item
+) {
+  const confirmed =
+    window.confirm(
+      `Remove "${item.title}"? This cannot be undone.`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setUpdatingId(item.id);
+
+  setActionMessage("");
+  setActionError("");
+
+  try {
+    /*
+      Find any documents attached
+      to this maintenance item.
+    */
+
+    const {
+      data: documents,
+      error: documentsError,
+    } = await supabase
+      .from("documents")
+      .select(
+        "id, file_path"
+      )
+      .eq(
+        "maintenance_id",
+        item.id
+      )
+      .eq(
+        "user_id",
+        item.user_id
       );
 
-    if (!confirmed) {
+    if (documentsError) {
+      console.error(
+        "Could not check maintenance documents:",
+        documentsError
+      );
+
+      setActionError(
+        "We couldn't check this maintenance item's documents, so it was not removed."
+      );
+
+      setUpdatingId(null);
       return;
     }
 
-    setUpdatingId(
-      item.id
-    );
 
-    setActionMessage("");
-    setActionError("");
+    /*
+      Remove the actual files from
+      Supabase Storage first.
+    */
 
-    const { error } =
-      await supabase
-        .from("maintenance")
-        .delete()
-        .eq(
-          "id",
-          item.id
-        )
-        .eq(
-          "user_id",
-          item.user_id
-        );
+    if (
+      documents &&
+      documents.length > 0
+    ) {
+      const filePaths =
+        documents
+          .map(
+            (document) =>
+              document.file_path
+          )
+          .filter(Boolean);
 
-    if (error) {
+      if (
+        filePaths.length > 0
+      ) {
+        const {
+          error: storageError,
+        } =
+          await supabase.storage
+            .from(
+              "home-documents"
+            )
+            .remove(
+              filePaths
+            );
+
+        if (storageError) {
+          console.error(
+            "Could not remove maintenance files:",
+            storageError
+          );
+
+          setActionError(
+            "We couldn't remove this maintenance item's documents, so the maintenance item was left in place."
+          );
+
+          setUpdatingId(null);
+          return;
+        }
+      }
+    }
+
+
+    /*
+      Delete the maintenance item.
+
+      The documents table rows are
+      automatically removed by the
+      database relationship.
+    */
+
+    const {
+      error: deleteError,
+    } = await supabase
+      .from("maintenance")
+      .delete()
+      .eq(
+        "id",
+        item.id
+      )
+      .eq(
+        "user_id",
+        item.user_id
+      );
+
+    if (deleteError) {
       console.error(
         "Could not delete maintenance:",
-        error
+        deleteError
       );
 
       setActionError(
@@ -545,6 +638,7 @@ export default function MaintenancePage() {
       setUpdatingId(null);
       return;
     }
+
 
     setMaintenance(
       (current) =>
@@ -557,8 +651,25 @@ export default function MaintenancePage() {
         )
     );
 
+
+    setActionMessage(
+      `"${item.title}" removed.`
+    );
+
+  } catch (deleteCatchError) {
+    console.error(
+      "Could not delete maintenance:",
+      deleteCatchError
+    );
+
+    setActionError(
+      "Something went wrong while removing this maintenance item."
+    );
+
+  } finally {
     setUpdatingId(null);
   }
+}
 
   function formatDate(
     dateString

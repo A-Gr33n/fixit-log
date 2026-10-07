@@ -5,6 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 
+const repairCategories = [
+  "Heating",
+  "Plumbing",
+  "Electrical",
+  "Appliance",
+  "Roofing",
+  "Other",
+];
+
 export default function NewRepairPage() {
   const router = useRouter();
 
@@ -27,6 +36,11 @@ export default function NewRepairPage() {
       return;
     }
 
+    if (!category) {
+      setError("Please choose a repair category.");
+      return;
+    }
+
     if (!repairDate) {
       setError("Please enter the repair date.");
       return;
@@ -40,34 +54,55 @@ export default function NewRepairPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("You need to be signed in to add a repair.");
+        setError(
+          "You need to be signed in to add a repair."
+        );
         setSaving(false);
         return;
       }
 
-      const { error: insertError } = await supabase
-        .from("repairs")
-        .insert({
-          user_id: user.id,
-          title: title.trim(),
-          category: category.trim() || null,
-          repair_date: repairDate,
-          cost: cost === "" ? null : Number(cost),
-          notes: notes.trim() || null,
-          completed: false,
-        });
+      const { error: insertError } =
+        await supabase
+          .from("repairs")
+          .insert({
+            user_id: user.id,
+            title: title.trim(),
+            category: category,
+            repair_date: repairDate,
+            cost:
+              cost === ""
+                ? null
+                : Number(cost),
+            notes:
+              notes.trim() || null,
+            completed: false,
+          });
 
       if (insertError) {
-        console.error("Could not save repair:", insertError);
-        setError("Could not save the repair. Please try again.");
+        console.error(
+          "Could not save repair:",
+          insertError
+        );
+
+        setError(
+          "Could not save the repair. Please try again."
+        );
+
         setSaving(false);
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/repairs");
     } catch (error) {
-      console.error("Could not save repair:", error);
-      setError("Something went wrong. Please try again.");
+      console.error(
+        "Could not save repair:",
+        error
+      );
+
+      setError(
+        "Something went wrong. Please try again."
+      );
+
       setSaving(false);
     }
   }
@@ -75,18 +110,23 @@ export default function NewRepairPage() {
   return (
     <main className="formPage">
       <div className="formContainer">
-
-        <Link href="/repairs" className="backLink">
+        <Link
+          href="/repairs"
+          className="backLink"
+        >
           ← Repairs
         </Link>
 
         <header className="formHeader">
-          <p className="eyebrow">YOUR HOME</p>
+          <p className="eyebrow">
+            YOUR HOME
+          </p>
 
           <h1>Add repair</h1>
 
           <p>
-            Record a repair and keep the details in one place.
+            Record a repair and keep
+            the details in one place.
           </p>
         </header>
 
@@ -105,7 +145,9 @@ export default function NewRepairPage() {
               type="text"
               value={title}
               onChange={(event) =>
-                setTitle(event.target.value)
+                setTitle(
+                  event.target.value
+                )
               }
               placeholder="e.g. Boiler repair"
               required
@@ -114,35 +156,47 @@ export default function NewRepairPage() {
 
           {/* Category */}
           <div className="field">
-            <label htmlFor="category">
+            <label>
               Category
             </label>
 
             <div className="categoryGrid">
-              {[
-                "Heating",
-                "Plumbing",
-                "Electrical",
-                "Appliance",
-                "Roofing",
-                "Other",
-              ].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`categoryOption ${
-                    category === option ? "selected" : ""
-                  }`}
-                  onClick={() =>
-                    setCategory(
-                      category === option ? "" : option
-                    )
-                  }
-                >
-                  {option}
-                </button>
-              ))}
+              {repairCategories.map(
+                (option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`categoryOption ${
+                      category ===
+                      option
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setCategory(
+                        option
+                      )
+                    }
+                  >
+                    {option}
+                  </button>
+                )
+              )}
             </div>
+
+            {!category && (
+              <p
+                style={{
+                  margin:
+                    "8px 0 0",
+                  fontSize:
+                    "12px",
+                  opacity: 0.7,
+                }}
+              >
+                Choose one category.
+              </p>
+            )}
           </div>
 
           {/* Repair date */}
@@ -156,7 +210,9 @@ export default function NewRepairPage() {
               type="date"
               value={repairDate}
               onChange={(event) =>
-                setRepairDate(event.target.value)
+                setRepairDate(
+                  event.target.value
+                )
               }
               required
             />
@@ -178,7 +234,9 @@ export default function NewRepairPage() {
                 step="0.01"
                 value={cost}
                 onChange={(event) =>
-                  setCost(event.target.value)
+                  setCost(
+                    event.target.value
+                  )
                 }
                 placeholder="0.00"
               />
@@ -196,7 +254,9 @@ export default function NewRepairPage() {
               rows="5"
               value={notes}
               onChange={(event) =>
-                setNotes(event.target.value)
+                setNotes(
+                  event.target.value
+                )
               }
               placeholder="Add any useful details about the repair..."
             />
@@ -216,7 +276,9 @@ export default function NewRepairPage() {
               className="primaryButton"
               disabled={saving}
             >
-              {saving ? "Saving repair..." : "Save repair"}
+              {saving
+                ? "Saving repair..."
+                : "Save repair"}
             </button>
 
             <Link
@@ -227,7 +289,6 @@ export default function NewRepairPage() {
             </Link>
           </div>
         </form>
-
       </div>
     </main>
   );

@@ -1296,6 +1296,37 @@ export default function DashboardPage() {
 
             </section>
 
+            {/* HOME HISTORY */}
+
+<Link
+  href="/history"
+  className="dashboardHistoryCard"
+>
+  <div className="dashboardHistoryIcon">
+    🏠
+  </div>
+
+  <div className="dashboardHistoryContent">
+    <p className="eyebrow">
+      HOME HISTORY
+    </p>
+
+    <h2>
+      Your home's record
+    </h2>
+
+    <p>
+      See completed maintenance,
+      repairs and the costs you've
+      recorded over time.
+    </p>
+  </div>
+
+  <span className="dashboardHistoryArrow">
+    →
+  </span>
+</Link>
+
             {/* ADD MAINTENANCE */}
 
             <Link

@@ -11,6 +11,7 @@ import {
 } from "next/navigation";
 import { supabase } from "../../../../lib/supabase";
 
+
 const categories = [
   "Boiler",
   "Heating",
@@ -23,6 +24,7 @@ const categories = [
   "Other",
 ];
 
+
 const repeatOptions = [
   { value: 1, label: "Every month" },
   { value: 3, label: "Every 3 months" },
@@ -31,26 +33,55 @@ const repeatOptions = [
   { value: 24, label: "Every 2 years" },
 ];
 
+
+const documentTypes = [
+  { value: "receipt", label: "Receipt" },
+  { value: "invoice", label: "Invoice" },
+  { value: "warranty", label: "Warranty" },
+  { value: "manual", label: "Manual" },
+  { value: "photo", label: "Photo" },
+  { value: "other", label: "Other" },
+];
+
+
+const allowedFileTypes = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+];
+
+
+const maxFileSize =
+  10 * 1024 * 1024;
+
+
 export default function EditMaintenancePage() {
   const router = useRouter();
   const params = useParams();
 
   const id = params.id;
 
+
   const [title, setTitle] =
     useState("");
+
   const [category, setCategory] =
     useState("Boiler");
+
   const [dueDate, setDueDate] =
     useState("");
+
   const [
     estimatedCost,
     setEstimatedCost,
   ] = useState("");
+
   const [notes, setNotes] =
     useState("");
+
   const [completed, setCompleted] =
     useState(false);
+
 
   const [recurring, setRecurring] =
     useState(false);
@@ -70,12 +101,59 @@ export default function EditMaintenancePage() {
     setUsingCustomRepeat,
   ] = useState(false);
 
+
   const [loading, setLoading] =
     useState(true);
+
   const [saving, setSaving] =
     useState(false);
+
   const [error, setError] =
     useState("");
+
+
+  // DOCUMENTS
+
+  const [documents, setDocuments] =
+    useState([]);
+
+  const [
+    documentsLoading,
+    setDocumentsLoading,
+  ] = useState(true);
+
+  const [
+    documentType,
+    setDocumentType,
+  ] = useState("receipt");
+
+  const [
+    selectedFile,
+    setSelectedFile,
+  ] = useState(null);
+
+  const [
+    uploadingDocument,
+    setUploadingDocument,
+  ] = useState(false);
+
+  const [
+    deletingDocumentId,
+    setDeletingDocumentId,
+  ] = useState(null);
+
+  const [
+    documentError,
+    setDocumentError,
+  ] = useState("");
+
+  const [
+    documentMessage,
+    setDocumentMessage,
+  ] = useState("");
+
+
+  // LOAD MAINTENANCE
 
   useEffect(() => {
     async function loadMaintenance() {
@@ -111,11 +189,12 @@ export default function EditMaintenancePage() {
             "We couldn't find this maintenance item."
           );
 
-          setLoading(false);
           return;
         }
 
-        setTitle(data.title || "");
+        setTitle(
+          data.title || ""
+        );
 
         setCategory(
           data.category || "Boiler"
@@ -126,10 +205,8 @@ export default function EditMaintenancePage() {
         );
 
         setEstimatedCost(
-          data.estimated_cost !==
-            null &&
-            data.estimated_cost !==
-              undefined
+          data.estimated_cost !== null &&
+          data.estimated_cost !== undefined
             ? String(
                 data.estimated_cost
               )
@@ -147,7 +224,9 @@ export default function EditMaintenancePage() {
         const isRecurring =
           Boolean(data.recurring);
 
-        setRecurring(isRecurring);
+        setRecurring(
+          isRecurring
+        );
 
         const savedRepeatMonths =
           Number(
@@ -180,10 +259,10 @@ export default function EditMaintenancePage() {
             )
           );
         }
-      } catch (error) {
+      } catch (loadCatchError) {
         console.error(
           "Could not load maintenance:",
-          error
+          loadCatchError
         );
 
         setError(
@@ -198,6 +277,86 @@ export default function EditMaintenancePage() {
       loadMaintenance();
     }
   }, [id, router]);
+
+
+  // LOAD DOCUMENTS
+
+  async function loadDocuments() {
+    try {
+      setDocumentsLoading(true);
+      setDocumentError("");
+
+      const {
+        data: { user },
+        error: userError,
+      } =
+        await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setDocumentError(
+          "Please sign in to view documents."
+        );
+
+        return;
+      }
+
+      const {
+        data,
+        error: loadError,
+      } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq(
+          "maintenance_id",
+          id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
+
+      if (loadError) {
+        console.error(
+          "Could not load documents:",
+          loadError
+        );
+
+        setDocumentError(
+          "We couldn't load your documents."
+        );
+
+        return;
+      }
+
+      setDocuments(
+        data || []
+      );
+    } catch (loadCatchError) {
+      console.error(
+        "Could not load documents:",
+        loadCatchError
+      );
+
+      setDocumentError(
+        "Something went wrong loading documents."
+      );
+    } finally {
+      setDocumentsLoading(false);
+    }
+  }
+
+
+  useEffect(() => {
+    if (id) {
+      loadDocuments();
+    }
+  }, [id]);
+
+
+  // RECURRING
 
   function getFinalRepeatMonths() {
     if (!recurring) {
@@ -228,6 +387,9 @@ export default function EditMaintenancePage() {
     );
   }
 
+
+  // SAVE MAINTENANCE
+
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -238,6 +400,7 @@ export default function EditMaintenancePage() {
       setError(
         "Please enter a title and due date."
       );
+
       return;
     }
 
@@ -251,6 +414,7 @@ export default function EditMaintenancePage() {
       setError(
         "Please choose a valid repeat interval between 1 and 120 months."
       );
+
       return;
     }
 
@@ -274,19 +438,29 @@ export default function EditMaintenancePage() {
       }
 
       const updates = {
-        title: title.trim(),
+        title:
+          title.trim(),
+
         category,
-        due_date: dueDate,
+
+        due_date:
+          dueDate,
+
         estimated_cost:
           estimatedCost
             ? Number(
                 estimatedCost
               )
             : null,
+
         notes:
-          notes.trim() || null,
+          notes.trim() ||
+          null,
+
         completed,
+
         recurring,
+
         repeat_months:
           finalRepeatMonths,
       };
@@ -297,7 +471,10 @@ export default function EditMaintenancePage() {
         .from("maintenance")
         .update(updates)
         .eq("id", id)
-        .eq("user_id", user.id);
+        .eq(
+          "user_id",
+          user.id
+        );
 
       if (updateError) {
         console.error(
@@ -316,10 +493,10 @@ export default function EditMaintenancePage() {
       router.push(
         "/maintenance"
       );
-    } catch (error) {
+    } catch (saveError) {
       console.error(
         "Could not update maintenance:",
-        error
+        saveError
       );
 
       setError(
@@ -329,6 +506,469 @@ export default function EditMaintenancePage() {
       setSaving(false);
     }
   }
+
+
+  // FILE SELECTION
+
+  function handleFileChange(event) {
+    const file =
+      event.target.files?.[0] ||
+      null;
+
+    setDocumentError("");
+    setDocumentMessage("");
+
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    if (
+      !allowedFileTypes.includes(
+        file.type
+      )
+    ) {
+      setSelectedFile(null);
+
+      setDocumentError(
+        "Please choose a JPEG, PNG, WebP or PDF file."
+      );
+
+      event.target.value = "";
+      return;
+    }
+
+    if (
+      file.size >
+      maxFileSize
+    ) {
+      setSelectedFile(null);
+
+      setDocumentError(
+        "The file must be 10 MB or smaller."
+      );
+
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedFile(file);
+  }
+
+
+  // UPLOAD DOCUMENT
+
+  async function handleDocumentUpload() {
+    if (!selectedFile) {
+      setDocumentError(
+        "Please choose a file to upload."
+      );
+
+      return;
+    }
+
+    setUploadingDocument(true);
+    setDocumentError("");
+    setDocumentMessage("");
+
+    let uploadedPath =
+      null;
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } =
+        await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setDocumentError(
+          "Please sign in before uploading a document."
+        );
+
+        return;
+      }
+
+      const safeFileName =
+        selectedFile.name.replace(
+          /[^a-zA-Z0-9._-]/g,
+          "_"
+        );
+
+      const uniqueFileName =
+        `${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
+
+      const filePath =
+        `${user.id}/maintenance/${id}/${uniqueFileName}`;
+
+      const {
+        error: uploadError,
+      } = await supabase.storage
+        .from(
+          "home-documents"
+        )
+        .upload(
+          filePath,
+          selectedFile,
+          {
+            cacheControl:
+              "3600",
+
+            upsert: false,
+
+            contentType:
+              selectedFile.type,
+          }
+        );
+
+      if (uploadError) {
+        console.error(
+          "Could not upload document:",
+          uploadError
+        );
+
+        setDocumentError(
+          `Upload failed: ${
+            uploadError.message ||
+            "Please try again."
+          }`
+        );
+
+        return;
+      }
+
+      uploadedPath =
+        filePath;
+
+      const {
+        error: insertError,
+      } = await supabase
+        .from("documents")
+        .insert({
+          user_id:
+            user.id,
+
+          maintenance_id:
+            id,
+
+          repair_id:
+            null,
+
+          document_type:
+            documentType,
+
+          file_name:
+            selectedFile.name,
+
+          file_path:
+            filePath,
+
+          file_type:
+            selectedFile.type,
+
+          file_size:
+            selectedFile.size,
+        });
+
+      if (insertError) {
+        console.error(
+          "Could not save document record:",
+          insertError
+        );
+
+        await supabase.storage
+          .from(
+            "home-documents"
+          )
+          .remove([
+            filePath,
+          ]);
+
+        setDocumentError(
+          `The file uploaded, but its record could not be saved: ${
+            insertError.message ||
+            "Please try again."
+          }`
+        );
+
+        return;
+      }
+
+      setSelectedFile(
+        null
+      );
+
+      setDocumentType(
+        "receipt"
+      );
+
+      const fileInput =
+        document.getElementById(
+          "maintenanceDocumentFile"
+        );
+
+      if (fileInput) {
+        fileInput.value =
+          "";
+      }
+
+      setDocumentMessage(
+        "Document uploaded successfully."
+      );
+
+      await loadDocuments();
+    } catch (uploadCatchError) {
+      console.error(
+        "Could not upload document:",
+        uploadCatchError
+      );
+
+      if (uploadedPath) {
+        await supabase.storage
+          .from(
+            "home-documents"
+          )
+          .remove([
+            uploadedPath,
+          ]);
+      }
+
+      setDocumentError(
+        `Something went wrong uploading the document: ${
+          uploadCatchError?.message ||
+          "Please try again."
+        }`
+      );
+    } finally {
+      setUploadingDocument(
+        false
+      );
+    }
+  }
+
+
+  // VIEW DOCUMENT
+
+  async function handleViewDocument(
+    documentItem
+  ) {
+    setDocumentError("");
+    setDocumentMessage("");
+
+    try {
+      const {
+        data,
+        error: signedUrlError,
+      } = await supabase.storage
+        .from(
+          "home-documents"
+        )
+        .createSignedUrl(
+          documentItem.file_path,
+          60
+        );
+
+      if (
+        signedUrlError ||
+        !data?.signedUrl
+      ) {
+        console.error(
+          "Could not open document:",
+          signedUrlError
+        );
+
+        setDocumentError(
+          `We couldn't open that document${
+            signedUrlError?.message
+              ? `: ${signedUrlError.message}`
+              : "."
+          }`
+        );
+
+        return;
+      }
+
+      window.open(
+        data.signedUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } catch (viewError) {
+      console.error(
+        "Could not open document:",
+        viewError
+      );
+
+      setDocumentError(
+        "Something went wrong opening the document."
+      );
+    }
+  }
+
+
+  // DELETE DOCUMENT
+
+  async function handleDeleteDocument(
+    documentItem
+  ) {
+    const confirmed =
+      window.confirm(
+        `Delete "${documentItem.file_name}"? This cannot be undone.`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingDocumentId(
+      documentItem.id
+    );
+
+    setDocumentError("");
+    setDocumentMessage("");
+
+    try {
+      const {
+        error: storageError,
+      } = await supabase.storage
+        .from(
+          "home-documents"
+        )
+        .remove([
+          documentItem.file_path,
+        ]);
+
+      if (storageError) {
+        console.error(
+          "Could not delete stored file:",
+          storageError
+        );
+
+        setDocumentError(
+          `We couldn't delete that file: ${
+            storageError.message ||
+            "Please try again."
+          }`
+        );
+
+        return;
+      }
+
+      const {
+        data: { user },
+        error: userError,
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        userError ||
+        !user
+      ) {
+        setDocumentError(
+          "The file was removed, but the document record could not be cleared because you are no longer signed in."
+        );
+
+        return;
+      }
+
+      const {
+        error: deleteError,
+      } = await supabase
+        .from("documents")
+        .delete()
+        .eq(
+          "id",
+          documentItem.id
+        )
+        .eq(
+          "user_id",
+          user.id
+        );
+
+      if (deleteError) {
+        console.error(
+          "Could not delete document record:",
+          deleteError
+        );
+
+        setDocumentError(
+          `The file was removed, but its document record could not be deleted: ${
+            deleteError.message ||
+            "Please try again."
+          }`
+        );
+
+        return;
+      }
+
+      setDocuments(
+        (current) =>
+          current.filter(
+            (item) =>
+              item.id !==
+              documentItem.id
+          )
+      );
+
+      setDocumentMessage(
+        "Document deleted."
+      );
+    } catch (deleteCatchError) {
+      console.error(
+        "Could not delete document:",
+        deleteCatchError
+      );
+
+      setDocumentError(
+        "Something went wrong deleting the document."
+      );
+    } finally {
+      setDeletingDocumentId(
+        null
+      );
+    }
+  }
+
+
+  function formatFileSize(
+    bytes
+  ) {
+    const size =
+      Number(bytes || 0);
+
+    if (size < 1024) {
+      return `${size} B`;
+    }
+
+    if (
+      size <
+      1024 * 1024
+    ) {
+      return `${(
+        size / 1024
+      ).toFixed(1)} KB`;
+    }
+
+    return `${(
+      size /
+      (1024 * 1024)
+    ).toFixed(1)} MB`;
+  }
+
+
+  function getDocumentTypeLabel(
+    value
+  ) {
+    return (
+      documentTypes.find(
+        (item) =>
+          item.value ===
+          value
+      )?.label ||
+      "Other"
+    );
+  }
+
 
   if (loading) {
     return (
@@ -342,15 +982,18 @@ export default function EditMaintenancePage() {
     );
   }
 
+
   return (
     <main className="formPage">
       <div className="formContainer">
+
         <Link
           href="/maintenance"
           className="backLink"
         >
           ← Back to maintenance
         </Link>
+
 
         <div className="formHeader">
           <p className="eyebrow">
@@ -368,10 +1011,14 @@ export default function EditMaintenancePage() {
           </p>
         </div>
 
+
+        {/* MAINTENANCE FORM */}
+
         <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
+
           <label className="field">
             <span>
               What needs doing?
@@ -390,8 +1037,11 @@ export default function EditMaintenancePage() {
             />
           </label>
 
+
           <div className="field">
-            <span>Category</span>
+            <span>
+              Category
+            </span>
 
             <div className="categoryGrid">
               {categories.map(
@@ -417,8 +1067,11 @@ export default function EditMaintenancePage() {
             </div>
           </div>
 
+
           <label className="field">
-            <span>Due date</span>
+            <span>
+              Due date
+            </span>
 
             <input
               type="date"
@@ -431,6 +1084,7 @@ export default function EditMaintenancePage() {
             />
           </label>
 
+
           {/* RECURRING */}
 
           <div className="field">
@@ -439,6 +1093,7 @@ export default function EditMaintenancePage() {
             </span>
 
             <div className="recurringChoice">
+
               <button
                 type="button"
                 className={`recurringChoiceButton ${
@@ -447,7 +1102,9 @@ export default function EditMaintenancePage() {
                     : ""
                 }`}
                 onClick={() =>
-                  setRecurring(false)
+                  setRecurring(
+                    false
+                  )
                 }
               >
                 One-off
@@ -461,15 +1118,20 @@ export default function EditMaintenancePage() {
                     : ""
                 }`}
                 onClick={() =>
-                  setRecurring(true)
+                  setRecurring(
+                    true
+                  )
                 }
               >
                 ↻ Repeats
               </button>
+
             </div>
+
 
             {recurring && (
               <div className="recurringPanel">
+
                 <div>
                   <strong>
                     Repeat schedule
@@ -478,12 +1140,15 @@ export default function EditMaintenancePage() {
                   <p>
                     Completing this
                     maintenance will
-                    automatically schedule
-                    the next due date.
+                    automatically
+                    schedule the next
+                    due date.
                   </p>
                 </div>
 
+
                 <div className="repeatOptions">
+
                   {repeatOptions.map(
                     (option) => (
                       <button
@@ -508,10 +1173,13 @@ export default function EditMaintenancePage() {
                           );
                         }}
                       >
-                        {option.label}
+                        {
+                          option.label
+                        }
                       </button>
                     )
                   )}
+
 
                   <button
                     type="button"
@@ -528,10 +1196,13 @@ export default function EditMaintenancePage() {
                   >
                     Custom
                   </button>
+
                 </div>
+
 
                 {usingCustomRepeat && (
                   <label className="customRepeatField">
+
                     <span>
                       Repeat every
                     </span>
@@ -561,11 +1232,15 @@ export default function EditMaintenancePage() {
                         months
                       </span>
                     </div>
+
                   </label>
                 )}
+
               </div>
             )}
+
           </div>
+
 
           <label className="field">
             <span>
@@ -576,7 +1251,9 @@ export default function EditMaintenancePage() {
             </span>
 
             <div className="costInput">
-              <span>£</span>
+              <span>
+                £
+              </span>
 
               <input
                 type="number"
@@ -594,6 +1271,7 @@ export default function EditMaintenancePage() {
               />
             </div>
           </label>
+
 
           <label className="field">
             <span>
@@ -615,8 +1293,11 @@ export default function EditMaintenancePage() {
             />
           </label>
 
+
           <div className="field">
-            <span>Status</span>
+            <span>
+              Status
+            </span>
 
             <button
               type="button"
@@ -638,20 +1319,24 @@ export default function EditMaintenancePage() {
 
             {recurring && (
               <p className="recurringStatusHint">
-                ↻ For recurring maintenance,
-                using “Mark as completed”
-                from the Maintenance page
-                will schedule the next
-                occurrence automatically.
+                ↻ For recurring
+                maintenance, using
+                “Mark as completed”
+                from the Maintenance
+                page will schedule the
+                next occurrence
+                automatically.
               </p>
             )}
           </div>
+
 
           {error && (
             <p className="formError">
               {error}
             </p>
           )}
+
 
           <button
             type="submit"
@@ -666,7 +1351,274 @@ export default function EditMaintenancePage() {
               ? "Saving changes..."
               : "Save changes →"}
           </button>
+
         </form>
+
+
+        {/* =================================
+            DOCUMENTS & RECEIPTS
+            OUTSIDE THE MAINTENANCE FORM
+           ================================= */}
+
+        <div className="documentsSection">
+
+          <div className="documentsHeader">
+
+            <div>
+              <p className="eyebrow">
+                DOCUMENTS & RECEIPTS
+              </p>
+
+              <h2>
+                Files for this job
+              </h2>
+
+              <p>
+                Keep receipts,
+                invoices, warranties,
+                manuals and photos
+                with this maintenance
+                record.
+              </p>
+            </div>
+
+            <span className="documentsCount">
+              {documents.length}
+            </span>
+
+          </div>
+
+
+          <div className="documentUploadPanel">
+
+            <label className="field">
+              <span>
+                Document type
+              </span>
+
+              <select
+                value={
+                  documentType
+                }
+                onChange={(event) =>
+                  setDocumentType(
+                    event.target.value
+                  )
+                }
+              >
+                {documentTypes.map(
+                  (item) => (
+                    <option
+                      key={
+                        item.value
+                      }
+                      value={
+                        item.value
+                      }
+                    >
+                      {
+                        item.label
+                      }
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+
+
+            <label className="field">
+              <span>
+                Choose file
+              </span>
+
+              <input
+                id="maintenanceDocumentFile"
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                onChange={
+                  handleFileChange
+                }
+              />
+
+              <small className="documentHint">
+               JPEG, PNG or PDF. Maximum 10 MB.
+              </small>
+            </label>
+
+
+            {selectedFile && (
+              <div className="selectedDocument">
+
+                <span>
+                  📎
+                </span>
+
+                <div>
+                  <strong>
+                    {
+                      selectedFile.name
+                    }
+                  </strong>
+
+                  <small>
+                    {formatFileSize(
+                      selectedFile.size
+                    )}
+                  </small>
+                </div>
+
+              </div>
+            )}
+
+
+            <button
+              type="button"
+              className="documentUploadButton"
+              onClick={
+                handleDocumentUpload
+              }
+              disabled={
+                !selectedFile ||
+                uploadingDocument
+              }
+            >
+              {uploadingDocument
+                ? "Uploading..."
+                : "Upload document"}
+            </button>
+
+          </div>
+
+
+          {documentError && (
+            <p className="documentError">
+              {documentError}
+            </p>
+          )}
+
+
+          {documentMessage && (
+            <p className="documentSuccess">
+              {documentMessage}
+            </p>
+          )}
+
+
+          {documentsLoading ? (
+            <div className="documentsEmpty">
+              Loading documents...
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="documentsEmpty">
+
+              <span>
+                📄
+              </span>
+
+              <div>
+                <strong>
+                  No documents yet
+                </strong>
+
+                <p>
+                  Files uploaded for
+                  this maintenance job
+                  will appear here.
+                </p>
+              </div>
+
+            </div>
+          ) : (
+            <div className="documentsList">
+
+              {documents.map(
+                (documentItem) => (
+                  <div
+                    className="documentCard"
+                    key={
+                      documentItem.id
+                    }
+                  >
+
+                    <div className="documentFileIcon">
+                      {documentItem.file_type ===
+                      "application/pdf"
+                        ? "PDF"
+                        : "📷"}
+                    </div>
+
+
+                    <div className="documentDetails">
+
+                      <strong>
+                        {
+                          documentItem.file_name
+                        }
+                      </strong>
+
+                      <div className="documentMeta">
+
+                        <span>
+                          {getDocumentTypeLabel(
+                            documentItem.document_type
+                          )}
+                        </span>
+
+                        <span>
+                          {formatFileSize(
+                            documentItem.file_size
+                          )}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="documentActions">
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleViewDocument(
+                            documentItem
+                          )
+                        }
+                      >
+                        View
+                      </button>
+
+
+                      <button
+                        type="button"
+                        className="documentDeleteButton"
+                        disabled={
+                          deletingDocumentId ===
+                          documentItem.id
+                        }
+                        onClick={() =>
+                          handleDeleteDocument(
+                            documentItem
+                          )
+                        }
+                      >
+                        {deletingDocumentId ===
+                        documentItem.id
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          )}
+
+        </div>
+
       </div>
     </main>
   );
