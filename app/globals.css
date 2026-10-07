@@ -3309,3 +3309,37 @@ h1 {
     font-size: 10px;
   }
 }
+
+/* =========================================
+   MOBILE NAV — FINAL SPACING FIX
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  /* Extra room below page content for fixed nav */
+  .dashboardPage,
+  .maintenancePage,
+  .repairsPage,
+  .costsPage {
+    padding-bottom: 135px !important;
+  }
+
+  /* Slightly improve nav readability */
+  .dashboardNav a,
+  .repairsNavigation a,
+  .maintenanceNavigation a,
+  .costsNavigation a {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* Make active tab more obvious */
+  .dashboardNav a.active,
+  .repairsNavigationActive,
+  .maintenanceNavigationActive,
+  .costsNavigationActive {
+    background: #e8ede7;
+    color: #17271f;
+    font-weight: 700;
+  }
+}
