@@ -4029,3 +4029,41 @@ h1 {
     font-size: 12px;
   }
 }
+
+/* =========================================
+   MOBILE REPAIR FORM ALIGNMENT
+   ========================================= */
+
+@media (max-width: 700px) {
+
+  .field > label {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .formActions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .formActions .primaryButton,
+  .formActions .secondaryButton {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 18px;
+
+    border-radius: 13px;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    text-align: center;
+  }
+}
