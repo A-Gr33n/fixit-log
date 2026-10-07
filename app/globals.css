@@ -4868,3 +4868,138 @@ h1 {
     white-space: nowrap;
   }
 }
+
+/* =========================================
+   SETTINGS — HOME DETAILS
+   ========================================= */
+
+.settingsHomeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settingsField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settingsField > span {
+  color: #26372f;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.settingsField > small {
+  color: #7a8680;
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.settingsField input,
+.settingsField select {
+  width: 100%;
+  min-height: 50px;
+
+  padding: 0 13px;
+
+  border: 1px solid #dcd9d2;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #26372f;
+
+  font: inherit;
+  font-size: 15px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.settingsField input:focus,
+.settingsField select:focus {
+  border-color: #829489;
+
+  box-shadow:
+    0 0 0 3px rgba(90, 115, 100, 0.1);
+}
+
+.settingsSaveButton {
+  width: fit-content;
+  min-height: 48px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 11px 18px;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: #243b30;
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.settingsSaveButton:hover {
+  background: #192d24;
+}
+
+.settingsSaveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.settingsSuccess {
+  margin: 0;
+
+  padding: 13px 15px;
+
+  border: 1px solid #cfded3;
+  border-radius: 12px;
+
+  background: #f3f8f4;
+
+  color: #315b3f;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+  .settingsHomeForm {
+    gap: 20px;
+  }
+
+  .settingsField input,
+  .settingsField select {
+    min-height: 52px;
+
+    font-size: 16px;
+  }
+
+  .settingsSaveButton {
+    width: 100%;
+    min-height: 52px;
+
+    font-size: 14px;
+  }
+}

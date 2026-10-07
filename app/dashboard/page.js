@@ -5,11 +5,11 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 export default function DashboardPage() {
-  const [maintenance, setMaintenance] = useState([]);
-  const [repairs, setRepairs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dashboardError, setDashboardError] = useState("");
-
+ const [maintenance, setMaintenance] = useState([]);
+const [repairs, setRepairs] = useState([]);
+const [homeName, setHomeName] = useState("My Home");
+const [loading, setLoading] = useState(true);
+const [dashboardError, setDashboardError] = useState("");
 
   async function loadDashboard() {
     try {
@@ -42,6 +42,29 @@ export default function DashboardPage() {
       }
 
       console.log("Dashboard user:", user.id);
+
+      // Load the user's saved home name
+const {
+  data: homeProfile,
+  error: homeProfileError,
+} = await supabase
+  .from("home_profiles")
+  .select("home_name")
+  .eq("user_id", user.id)
+  .maybeSingle();
+
+if (homeProfileError) {
+  console.error(
+    "Could not load home profile:",
+    homeProfileError
+  );
+}
+
+if (homeProfile?.home_name) {
+  setHomeName(homeProfile.home_name);
+} else {
+  setHomeName("My Home");
+}
 
       // Load maintenance belonging to the current user
       const { data: maintenanceData, error: maintenanceError } =
@@ -223,7 +246,7 @@ export default function DashboardPage() {
 
             <p className="eyebrow">YOUR HOME</p>
 
-            <h1>My Home</h1>
+            <h1>{homeName}</h1>
 
             <p className="dashboardSubtitle">
               Here's what needs your attention.
