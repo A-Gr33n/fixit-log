@@ -14,6 +14,23 @@ const repairCategories = [
   "Other",
 ];
 
+const documentTypes = [
+  { value: "receipt", label: "Receipt" },
+  { value: "invoice", label: "Invoice" },
+  { value: "warranty", label: "Warranty" },
+  { value: "manual", label: "Manual" },
+  { value: "photo", label: "Photo" },
+  { value: "other", label: "Other" },
+];
+
+const allowedFileTypes = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+];
+
+const maxFileSize = 10 * 1024 * 1024;
+
 export default function NewRepairPage() {
   const router = useRouter();
 
@@ -23,11 +40,107 @@ export default function NewRepairPage() {
   const [cost, setCost] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [attachments, setAttachments] = useState([]);
+  const [documentType, setDocumentType] = useState("receipt");
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  function handleAddFiles(event) {
+    const files = Array.from(event.target.files || []);
+    setError("");
+
+    const invalid = files.find(
+      (file) =>
+        !allowedFileTypes.includes(file.type) ||
+        file.size > maxFileSize
+    );
+
+    if (invalid) {
+      setError(
+        "Only JPG, PNG and PDF files up to 10 MB are allowed."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    setAttachments((current) => [
+      ...current,
+      ...files.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        type: documentType,
+      })),
+    ]);
+
+    event.target.value = "";
+  }
+
+  function removeAttachment(id) {
+    setAttachments((current) =>
+      current.filter((item) => item.id !== id)
+    );
+  }
+
+  async function uploadAttachments(userId, repairId) {
+    const failures = [];
+
+    for (const attachment of attachments) {
+      const { file, type } = attachment;
+
+      const safeName = file.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_"
+      );
+
+      const path =
+        `${userId}/repairs/${repairId}/` +
+        `${crypto.randomUUID()}-${safeName}`;
+
+      const { error: uploadError } =
+        await supabase.storage
+          .from("home-documents")
+          .upload(path, file, {
+            contentType: file.type,
+            upsert: false,
+          });
+
+      if (uploadError) {
+        console.error("Document upload failed:", uploadError);
+        failures.push(file.name);
+        continue;
+      }
+
+      const { error: documentError } = await supabase
+        .from("documents")
+        .insert({
+          user_id: userId,
+          maintenance_id: null,
+          repair_id: repairId,
+          document_type: type,
+          file_name: file.name,
+          file_path: path,
+          file_type: file.type,
+          file_size: file.size,
+        });
+
+      if (documentError) {
+        console.error("Document record failed:", documentError);
+
+        await supabase.storage
+          .from("home-documents")
+          .remove([path]);
+
+        failures.push(file.name);
+      }
+    }
+
+    return failures;
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+    if (saving) return;
 
     setError("");
 
@@ -51,58 +164,56 @@ export default function NewRepairPage() {
     try {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        setError(
-          "You need to be signed in to add a repair."
-        );
-        setSaving(false);
+      if (userError || !user) {
+        setError("Please sign in before adding a repair.");
         return;
       }
 
-      const { error: insertError } =
+      const { data: repair, error: insertError } =
         await supabase
           .from("repairs")
           .insert({
             user_id: user.id,
             title: title.trim(),
-            category: category,
+            category,
             repair_date: repairDate,
-            cost:
-              cost === ""
-                ? null
-                : Number(cost),
-            notes:
-              notes.trim() || null,
+            cost: cost === "" ? null : Number(cost),
+            notes: notes.trim() || null,
             completed: false,
-          });
+          })
+          .select("id")
+          .single();
 
-      if (insertError) {
-        console.error(
-          "Could not save repair:",
-          insertError
-        );
+      if (insertError || !repair) {
+        console.error("Could not save repair:", insertError);
+        setError("Could not save the repair. Please try again.");
+        return;
+      }
 
+      const failures = await uploadAttachments(
+        user.id,
+        repair.id
+      );
+
+      if (failures.length > 0) {
         setError(
-          "Could not save the repair. Please try again."
+          `Repair saved, but these files could not be uploaded: ` +
+          `${failures.join(", ")}. Open the repair's Edit page ` +
+          `to add them again.`
         );
-
-        setSaving(false);
         return;
       }
 
       router.push("/repairs");
-    } catch (error) {
-      console.error(
-        "Could not save repair:",
-        error
-      );
-
+    } catch (saveError) {
+      console.error("Could not save repair:", saveError);
       setError(
-        "Something went wrong. Please try again."
+        "Something went wrong. Check your Repairs list before trying again."
       );
-
+    } finally {
       setSaving(false);
     }
   }
@@ -110,23 +221,16 @@ export default function NewRepairPage() {
   return (
     <main className="formPage">
       <div className="formContainer">
-        <Link
-          href="/repairs"
-          className="backLink"
-        >
+        <Link href="/repairs" className="backLink">
           ← Repairs
         </Link>
 
         <header className="formHeader">
-          <p className="eyebrow">
-            YOUR HOME
-          </p>
-
+          <p className="eyebrow">YOUR HOME</p>
           <h1>Add repair</h1>
-
           <p>
-            Record a repair and keep
-            the details in one place.
+            Record a repair and keep the details,
+            receipts and photos in one place.
           </p>
         </header>
 
@@ -134,142 +238,183 @@ export default function NewRepairPage() {
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
-          {/* Repair title */}
           <div className="field">
-            <label htmlFor="title">
-              Repair title
-            </label>
-
+            <label htmlFor="title">Repair title</label>
             <input
               id="title"
               type="text"
               value={title}
-              onChange={(event) =>
-                setTitle(
-                  event.target.value
-                )
-              }
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="e.g. Boiler repair"
               required
             />
           </div>
 
-          {/* Category */}
           <div className="field">
-            <label>
-              Category
-            </label>
-
+            <label>Category</label>
             <div className="categoryGrid">
-              {repairCategories.map(
-                (option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    className={`categoryOption ${
-                      category ===
-                      option
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setCategory(
-                        option
-                      )
-                    }
-                  >
-                    {option}
-                  </button>
-                )
-              )}
+              {repairCategories.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`categoryOption ${
+                    category === option ? "selected" : ""
+                  }`}
+                  onClick={() => setCategory(option)}
+                >
+                  {option}
+                </button>
+              ))}
             </div>
-
-            {!category && (
-              <p
-                style={{
-                  margin:
-                    "8px 0 0",
-                  fontSize:
-                    "12px",
-                  opacity: 0.7,
-                }}
-              >
-                Choose one category.
-              </p>
-            )}
           </div>
 
-          {/* Repair date */}
           <div className="field">
-            <label htmlFor="repairDate">
-              Repair date
-            </label>
-
+            <label htmlFor="repairDate">Repair date</label>
             <input
               id="repairDate"
               type="date"
               value={repairDate}
               onChange={(event) =>
-                setRepairDate(
-                  event.target.value
-                )
+                setRepairDate(event.target.value)
               }
               required
             />
           </div>
 
-          {/* Cost */}
           <div className="field">
-            <label htmlFor="cost">
-              Cost (£)
-            </label>
-
+            <label htmlFor="cost">Cost (£)</label>
             <div className="costInput">
               <span>£</span>
-
               <input
                 id="cost"
                 type="number"
                 min="0"
                 step="0.01"
                 value={cost}
-                onChange={(event) =>
-                  setCost(
-                    event.target.value
-                  )
-                }
+                onChange={(event) => setCost(event.target.value)}
                 placeholder="0.00"
               />
             </div>
           </div>
 
-          {/* Notes */}
           <div className="field">
-            <label htmlFor="notes">
-              Notes
-            </label>
-
+            <label htmlFor="notes">Notes</label>
             <textarea
               id="notes"
               rows="5"
               value={notes}
-              onChange={(event) =>
-                setNotes(
-                  event.target.value
-                )
-              }
-              placeholder="Add any useful details about the repair..."
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Add any useful details..."
             />
           </div>
 
-          {/* Error */}
+          <section className="documentsSection">
+            <div className="documentsHeader">
+              <div>
+                <p className="eyebrow">DOCUMENTS & RECEIPTS</p>
+                <h2>Attach files</h2>
+                <p>
+                  Add receipts, invoices, warranties,
+                  manuals or photos before saving.
+                </p>
+              </div>
+              <span className="documentsCount">
+                {attachments.length}
+              </span>
+            </div>
+
+            <div className="documentUploadPanel">
+              <div className="field">
+                <label htmlFor="repairDocumentType">
+                  Document type
+                </label>
+                <select
+                  id="repairDocumentType"
+                  value={documentType}
+                  onChange={(event) =>
+                    setDocumentType(event.target.value)
+                  }
+                >
+                  {documentTypes.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label htmlFor="repairFiles">
+                  Choose files
+                </label>
+                <input
+                  id="repairFiles"
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                  onChange={handleAddFiles}
+                />
+                <small className="documentHint">
+                  Optional. JPG, PNG or PDF.
+                  Maximum 10 MB per file.
+                </small>
+              </div>
+            </div>
+
+            {attachments.length > 0 && (
+              <div className="documentsList">
+                {attachments.map((attachment) => (
+                  <div
+                    className="documentCard"
+                    key={attachment.id}
+                  >
+                    <div className="documentFileIcon">
+                      {attachment.file.type ===
+                      "application/pdf"
+                        ? "PDF"
+                        : "📷"}
+                    </div>
+
+                    <div className="documentDetails">
+                      <strong>
+                        {attachment.file.name}
+                      </strong>
+                      <div className="documentMeta">
+                        <span>
+                          {documentTypes.find(
+                            (type) =>
+                              type.value === attachment.type
+                          )?.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="documentActions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeAttachment(attachment.id)
+                        }
+                        disabled={saving}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {error && (
-            <p className="formError">
+            <p className="formError" role="alert">
               {error}
             </p>
           )}
 
-          {/* Buttons */}
           <div className="formActions">
             <button
               type="submit"
@@ -277,7 +422,7 @@ export default function NewRepairPage() {
               disabled={saving}
             >
               {saving
-                ? "Saving repair..."
+                ? "Saving repair and files..."
                 : "Save repair"}
             </button>
 
