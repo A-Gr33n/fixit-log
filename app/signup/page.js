@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -56,13 +57,14 @@ export default function SignupPage() {
     console.log("Sending signup request to Supabase...");
 
     try {
-      const {
-        data,
-        error: signUpError,
-      } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-      });
+      const { data, error: signUpError } =
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/login`,
+          },
+        });
 
       if (signUpError) {
         console.error("========== SIGNUP ERROR ==========");
@@ -210,6 +212,7 @@ export default function SignupPage() {
           <button
             type="submit"
             className="primaryButton"
+            disabled={loading}
             onClick={() => {
               console.log("CREATE ACCOUNT CLICKED");
             }}
