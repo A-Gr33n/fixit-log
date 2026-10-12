@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -86,6 +87,15 @@ export default function LoginPage() {
               required
             />
           </label>
+
+          <p className="onboardingFooter">
+            <Link
+              href="/forgot-password"
+              className="textLink"
+            >
+              Forgot password?
+            </Link>
+          </p>
 
           {error && (
             <p className="formError">
