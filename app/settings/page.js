@@ -70,6 +70,11 @@ export default function SettingsPage() {
     setSavingReminders,
   ] = useState(false);
 
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+const [deleteConfirmation, setDeleteConfirmation] = useState("");
+const [deletingAccount, setDeletingAccount] = useState(false);
+const [deleteError, setDeleteError] = useState("");
+
   const [
     signingOut,
     setSigningOut,
@@ -364,6 +369,58 @@ export default function SettingsPage() {
       );
 
       setSigningOut(false);
+    }
+  }
+
+    async function handleDeleteAccount() {
+    if (deleteConfirmation !== "DELETE" || deletingAccount) {
+      return;
+    }
+
+    setDeletingAccount(true);
+    setDeleteError("");
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("Please sign in again before deleting your account.");
+      }
+
+      const response = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          confirmation: "DELETE",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "We couldn't delete your account."
+        );
+      }
+
+      await supabase.auth.signOut();
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Account deletion failed:", error);
+
+      setDeleteError(
+        error.message || "Something went wrong. Please try again."
+      );
+    } finally {
+      setDeletingAccount(false);
     }
   }
 
@@ -816,6 +873,143 @@ export default function SettingsPage() {
             </section>
 
             {/* SUCCESS / ERROR */}
+
+            {/* DELETE ACCOUNT */}
+<section className="settingsCard">
+  <div className="settingsCardHeader">
+    <div className="settingsIcon">🗑️</div>
+
+    <div>
+      <p className="settingsLabel">ACCOUNT DELETION</p>
+      <h2>Delete your account</h2>
+    </div>
+  </div>
+
+  <p className="settingsDescription">
+    Permanently delete your FixIt Log account, maintenance
+    records, repairs, home details and uploaded documents.
+    This cannot be undone.
+  </p>
+
+  {!showDeleteConfirmation ? (
+    <button
+      type="button"
+      onClick={() => {
+        setShowDeleteConfirmation(true);
+        setDeleteConfirmation("");
+        setDeleteError("");
+      }}
+      style={{
+        padding: "12px 18px",
+        borderRadius: "10px",
+        border: "1px solid #b91c1c",
+        background: "transparent",
+        color: "#b91c1c",
+        fontWeight: "600",
+        cursor: "pointer",
+      }}
+    >
+      Delete account
+    </button>
+  ) : (
+    <div>
+      <p className="settingsDescription">
+        To confirm, type <strong>DELETE</strong> in the box
+        below.
+      </p>
+
+      <input
+        type="text"
+        value={deleteConfirmation}
+        onChange={(event) => {
+          setDeleteConfirmation(event.target.value);
+          setDeleteError("");
+        }}
+        placeholder="Type DELETE"
+        autoComplete="off"
+        disabled={deletingAccount}
+        aria-label="Type DELETE to confirm account deletion"
+        style={{
+          width: "100%",
+          maxWidth: "320px",
+          padding: "12px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+          marginBottom: "14px",
+        }}
+      />
+
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={
+            deleteConfirmation !== "DELETE" ||
+            deletingAccount
+          }
+          style={{
+            padding: "12px 18px",
+            borderRadius: "10px",
+            border: "none",
+            background:
+              deleteConfirmation === "DELETE" &&
+              !deletingAccount
+                ? "#b91c1c"
+                : "#aaa",
+            color: "white",
+            fontWeight: "600",
+            cursor:
+              deleteConfirmation === "DELETE" &&
+              !deletingAccount
+                ? "pointer"
+                : "not-allowed",
+          }}
+        >
+          {deletingAccount
+            ? "Deleting account..."
+            : "Permanently delete account"}
+        </button>
+
+        <button
+          type="button"
+          disabled={deletingAccount}
+          onClick={() => {
+            setShowDeleteConfirmation(false);
+            setDeleteConfirmation("");
+            setDeleteError("");
+          }}
+          style={{
+            padding: "12px 18px",
+            borderRadius: "10px",
+            border: "1px solid #ccc",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+
+      {deleteError && (
+        <p
+          role="alert"
+          style={{
+            color: "#b91c1c",
+            marginTop: "14px",
+          }}
+        >
+          {deleteError}
+        </p>
+      )}
+    </div>
+  )}
+</section>
 
             {success && (
               <p className="settingsSuccess">
