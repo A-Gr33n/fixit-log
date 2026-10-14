@@ -775,9 +775,66 @@ export default function DashboardPage() {
                   {homeHealth.label}
                 </h2>
 
-                <p className="homeHealthMessage">
+                                <p className="homeHealthMessage">
                   {homeHealth.message}
                 </p>
+
+                <details
+                  style={{
+                    marginTop: "12px",
+                    marginBottom: "16px",
+                    fontSize: "13px",
+                  }}
+                >
+                  <summary
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      color: "#26332d",
+                    }}
+                  >
+                    How is this calculated?
+                  </summary>
+
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      lineHeight: "1.7",
+                      color: "#475569",
+                    }}
+                  >
+                    <p>
+                      Your Home Health score starts at
+                      100 points. We deduct:
+                    </p>
+
+                    <ul
+                      style={{
+                        paddingLeft: "20px",
+                        marginTop: "8px",
+                      }}
+                    >
+                      <li>
+                        12 points for each overdue
+                        maintenance task.
+                      </li>
+                      <li>
+                        8 points for each open repair.
+                      </li>
+                      <li>
+                        2 points for each upcoming
+                        maintenance task.
+                      </li>
+                    </ul>
+
+                    <p style={{ marginTop: "8px" }}>
+                      Your score cannot fall below 0.
+                      Keeping your maintenance up to
+                      date and completing repairs
+                      helps improve your score.
+                    </p>
+                  </div>
+                </details>
 
                 <div className="homeHealthStats">
                   <span>

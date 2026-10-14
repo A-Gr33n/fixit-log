@@ -220,18 +220,41 @@ export default function SignupPage() {
             {loading
               ? "Creating account..."
               : "Create account →"}
-          </button>
+              
+         
+             </button>
+
+          <p
+            style={{
+              marginTop: "12px",
+              fontSize: "13px",
+              lineHeight: "1.6",
+              color: "#64748b",
+              textAlign: "center",
+            }}
+          >
+            By creating an account, you acknowledge that
+            you've read our{" "}
+            <Link
+              href="/privacy"
+              style={{
+                color: "#26332d",
+                textDecoration: "underline",
+              }}
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </form>
 
         <p className="onboardingFooter">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="textLink"
-          >
-            Sign in
-          </Link>
+        
+  
         </p>
+
+        
 
         <p className="onboardingFooter">
           <Link
