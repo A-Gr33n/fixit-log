@@ -294,10 +294,22 @@ export default function NewMaintenancePage() {
           </p>
         </header>
 
-        <form
+                <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
+          <p
+            style={{
+              fontSize: "13px",
+              lineHeight: "1.6",
+              color: "#64748b",
+              marginBottom: "8px",
+            }}
+          >
+            Enter a maintenance task and due date to get
+            started. The other details are optional.
+          </p>
+
           <label className="field">
             <span>What needs maintaining?</span>
             <input

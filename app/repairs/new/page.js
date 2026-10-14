@@ -238,6 +238,18 @@ export default function NewRepairPage() {
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
+                  <p
+            style={{
+              fontSize: "13px",
+              lineHeight: "1.6",
+              color: "#64748b",
+              marginBottom: "8px",
+            }}
+          >
+            Enter a repair title and date to get started.
+            You can add costs, notes and documents if you have them.
+          </p>
+
           <div className="field">
             <label htmlFor="title">Repair title</label>
             <input

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -93,6 +94,7 @@ export default function CostsPage() {
       category: item.category,
       date: item.due_date,
       amount: Number(item.estimated_cost || 0),
+      costLabel: "Estimated",
     })),
 
     ...repairItems.map((item) => ({
@@ -102,6 +104,7 @@ export default function CostsPage() {
       category: item.category,
       date: item.repair_date,
       amount: Number(item.cost || 0),
+      costLabel: "Recorded cost",
     })),
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -134,8 +137,8 @@ export default function CostsPage() {
             <h1>Costs</h1>
 
             <p className="costsSubtitle">
-              Keep track of what you've spent maintaining and repairing
-              your home.
+              Keep track of your estimated maintenance costs
+              and recorded repair costs in one place.
             </p>
           </div>
         </header>
@@ -156,7 +159,7 @@ export default function CostsPage() {
               <div className="costSummaryCard costSummaryMain">
                 <div className="costSummaryTop">
                   <div>
-                    <p className="eyebrow">TOTAL SPENDING</p>
+                    <p className="eyebrow">TOTAL LOGGED COSTS</p>
 
                     <h2>£{total.toFixed(2)}</h2>
                   </div>
@@ -167,14 +170,18 @@ export default function CostsPage() {
                 </div>
 
                 <p>
-                  Your total logged maintenance and repair costs.
+                  Combined maintenance estimates and recorded
+                  repair costs. This is not necessarily the
+                  amount you've already spent.
                 </p>
               </div>
 
               <div className="costSummaryCard">
                 <div className="costSummaryTop">
                   <div>
-                    <p className="eyebrow">MAINTENANCE</p>
+                    <p className="eyebrow">
+                      ESTIMATED MAINTENANCE
+                    </p>
 
                     <h2>£{maintenanceTotal.toFixed(2)}</h2>
                   </div>
@@ -189,14 +196,16 @@ export default function CostsPage() {
                   {maintenanceItems.length === 1
                     ? "item"
                     : "items"}{" "}
-                  with a cost recorded.
+                  with an estimated cost.
                 </p>
               </div>
 
               <div className="costSummaryCard">
                 <div className="costSummaryTop">
                   <div>
-                    <p className="eyebrow">REPAIRS</p>
+                    <p className="eyebrow">
+                      RECORDED REPAIR COSTS
+                    </p>
 
                     <h2>£{repairsTotal.toFixed(2)}</h2>
                   </div>
@@ -211,7 +220,7 @@ export default function CostsPage() {
                   {repairItems.length === 1
                     ? "repair"
                     : "repairs"}{" "}
-                  with a cost recorded.
+                  with a recorded cost.
                 </p>
               </div>
             </section>
@@ -221,11 +230,11 @@ export default function CostsPage() {
                 <div>
                   <p className="eyebrow">COST HISTORY</p>
 
-                  <h2>Where your money has gone</h2>
+                  <h2>Your logged costs</h2>
 
                   <p className="sectionDescription">
-                    A record of the maintenance and repairs you've
-                    logged.
+                    Maintenance estimates and repair costs
+                    you've recorded for your home.
                   </p>
                 </div>
 
@@ -246,8 +255,9 @@ export default function CostsPage() {
                   <h3>No costs logged yet</h3>
 
                   <p>
-                    Add a cost to a maintenance item or repair and
-                    it will appear here.
+                    Add an estimated cost to a maintenance
+                    item or a cost to a repair and it will
+                    appear here.
                   </p>
 
                   <div className="emptyStateActions">
@@ -297,6 +307,16 @@ export default function CostsPage() {
                         <p>
                           {item.category || "General"} ·{" "}
                           {formatDate(item.date)}
+                        </p>
+
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#64748b",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {item.costLabel}
                         </p>
                       </div>
 
