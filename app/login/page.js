@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -17,22 +16,58 @@ export default function LoginPage() {
   async function handleSubmit(event) {
     event.preventDefault();
 
+    if (loading) return;
+
     setError("");
     setLoading(true);
 
-    const { error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+    try {
+      // Sign the user in.
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
-    if (signInError) {
-      setError(signInError.message);
+      if (signInError) {
+        throw signInError;
+      }
+
+      const user = data.user;
+
+      if (!user) {
+        throw new Error("Could not find the signed-in user.");
+      }
+
+      // Check whether this user has already set up a home.
+      const { data: homeProfile, error: profileError } =
+        await supabase
+          .from("home_profiles")
+          .select("home_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // New users go to onboarding.
+      // Existing users go to their dashboard.
+      if (!homeProfile?.home_name?.trim()) {
+        router.replace("/onboarding");
+      } else {
+        router.replace("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+
+      setError(
+        err.message ||
+          "Something went wrong while signing in. Please try again."
+      );
+
       setLoading(false);
-      return;
     }
-
-    router.replace("/dashboard");
   }
 
   return (
@@ -63,9 +98,10 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(event) =>
-                setEmail(event.target.value)
-              }
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setError("");
+              }}
               placeholder="you@example.com"
               autoComplete="email"
               required
@@ -79,9 +115,10 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError("");
+              }}
               placeholder="Enter your password"
               autoComplete="current-password"
               required
@@ -98,7 +135,7 @@ export default function LoginPage() {
           </p>
 
           {error && (
-            <p className="formError">
+            <p className="formError" role="alert">
               {error}
             </p>
           )}
