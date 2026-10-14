@@ -1,25 +1,75 @@
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { supabase } from "../../lib/supabase";
 
 export default function OnboardingPage() {
   const router = useRouter();
 
-  const [name, setName] = useState("");
   const [propertyName, setPropertyName] = useState("My Home");
   const [propertyType, setPropertyType] = useState("House");
-  const [yearBuilt, setYearBuilt] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!name.trim() || !propertyName.trim()) {
+    const cleanPropertyName = propertyName.trim();
+
+    if (!cleanPropertyName || saving) {
       return;
     }
 
-    router.push("/dashboard");
+    setSaving(true);
+    setError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        setError(
+          "Your session has expired. Please sign in again."
+        );
+        return;
+      }
+
+      const { error: saveError } = await supabase
+        .from("home_profiles")
+        .upsert(
+          {
+            user_id: user.id,
+            home_name: cleanPropertyName,
+            property_type: propertyType,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id",
+          }
+        );
+
+      if (saveError) {
+        throw saveError;
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Could not save home details:", err);
+
+      setError(
+        "We couldn't save your home details. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -36,32 +86,29 @@ export default function OnboardingPage() {
           <h1>Tell us about your home.</h1>
 
           <p>
-            Just a few details and you'll be ready to start keeping track of
-            your home's maintenance.
+            Just two quick details and you'll be ready
+            to start keeping track of your home's maintenance.
           </p>
         </div>
 
-        <form className="onboardingForm" onSubmit={handleSubmit}>
-          <label className="field">
-            <span>Your name</span>
-
-            <input
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Enter your name"
-              autoFocus
-            />
-          </label>
-
+        <form
+          className="onboardingForm"
+          onSubmit={handleSubmit}
+        >
           <label className="field">
             <span>Property name</span>
 
             <input
               type="text"
               value={propertyName}
-              onChange={(event) => setPropertyName(event.target.value)}
+              onChange={(event) => {
+                setPropertyName(event.target.value);
+                setError("");
+              }}
               placeholder="e.g. My Home"
+              autoFocus
+              required
+              disabled={saving}
             />
           </label>
 
@@ -69,45 +116,51 @@ export default function OnboardingPage() {
             <span>Property type</span>
 
             <div className="propertyOptions">
-              {["House", "Flat / Apartment", "Other"].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`propertyOption ${
-                    propertyType === option ? "selected" : ""
-                  }`}
-                  onClick={() => setPropertyType(option)}
-                >
-                  {option}
-                </button>
-              ))}
+              {["House", "Flat / Apartment", "Other"].map(
+                (option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`propertyOption ${
+                      propertyType === option
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      setPropertyType(option);
+                      setError("");
+                    }}
+                    disabled={saving}
+                  >
+                    {option}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
-          <label className="field">
-            <span>Year built <small>(optional)</small></span>
-
-            <input
-              type="number"
-              value={yearBuilt}
-              onChange={(event) => setYearBuilt(event.target.value)}
-              placeholder="e.g. 1998"
-              min="1800"
-              max={new Date().getFullYear()}
-            />
-          </label>
+          {error && (
+            <p
+              className="formError"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             className="primaryButton"
-            disabled={!name.trim() || !propertyName.trim()}
+            disabled={!propertyName.trim() || saving}
           >
-            Set up my home →
+            {saving
+              ? "Saving your home..."
+              : "Set up my home →"}
           </button>
         </form>
 
         <p className="onboardingFooter">
-          You can change these details later.
+          You can change these details later in Settings.
         </p>
       </div>
     </main>
