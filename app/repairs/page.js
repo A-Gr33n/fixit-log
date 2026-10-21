@@ -750,12 +750,19 @@ async function deleteRepair(repair) {
                       )}
 
                       <div className="repairActions">
-                        <Link
-                          href={`/repairs/${repair.id}/edit`}
-                          className="repairEditButton"
-                        >
-                          Edit
-                        </Link>
+  <Link
+    href={`/repairs/${repair.id}/view`}
+    className="repairEditButton"
+  >
+    👁 View
+  </Link>
+
+  <Link
+    href={`/repairs/${repair.id}/edit`}
+    className="repairEditButton"
+  >
+    Edit
+  </Link>
 
                         <button
                           type="button"

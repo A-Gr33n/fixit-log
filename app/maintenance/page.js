@@ -1208,13 +1208,21 @@ export default function MaintenancePage() {
                             </p>
                           )}
 
-                          <div className="maintenanceItemActions">
-                            <Link
-                              href={`/maintenance/edit/${item.id}`}
-                              className="editButton"
-                            >
-                              Edit
-                            </Link>
+                          
+                           <div className="maintenanceItemActions">
+  <Link
+    href={`/maintenance/view/${item.id}`}
+    className="editButton"
+  >
+    👁 View
+  </Link>
+
+  <Link
+    href={`/maintenance/edit/${item.id}`}
+    className="editButton"
+  >
+    Edit
+  </Link>
 
                             <button
                               type="button"
