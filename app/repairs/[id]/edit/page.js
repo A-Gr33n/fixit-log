@@ -1,10 +1,10 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../../lib/supabase";
-
 
 const categories = [
   "Heating",
@@ -15,7 +15,6 @@ const categories = [
   "Other",
 ];
 
-
 const documentTypes = [
   { value: "receipt", label: "Receipt" },
   { value: "invoice", label: "Invoice" },
@@ -25,95 +24,55 @@ const documentTypes = [
   { value: "other", label: "Other" },
 ];
 
-
 const allowedFileTypes = [
   "image/jpeg",
   "image/png",
   "application/pdf",
 ];
 
-
-const maxFileSize =
-  10 * 1024 * 1024;
-
+const maxFileSize = 10 * 1024 * 1024;
 
 export default function EditRepairPage() {
   const params = useParams();
   const router = useRouter();
-
   const repairId = params.id;
 
+  // REPAIR DETAILS
 
-  // REPAIR
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [repairDate, setRepairDate] = useState("");
+  const [cost, setCost] = useState("");
+  const [notes, setNotes] = useState("");
+  const [completed, setCompleted] = useState(false);
 
-  const [title, setTitle] =
-    useState("");
-
-  const [category, setCategory] =
-    useState("");
-
-  const [repairDate, setRepairDate] =
-    useState("");
-
-  const [cost, setCost] =
-    useState("");
-
-  const [notes, setNotes] =
-    useState("");
-
-  const [completed, setCompleted] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   // DOCUMENTS
 
-  const [documents, setDocuments] =
-    useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [documentsLoading, setDocumentsLoading] =
+    useState(true);
 
-  const [
-    documentsLoading,
-    setDocumentsLoading,
-  ] = useState(true);
+  const [documentType, setDocumentType] =
+    useState("receipt");
 
-  const [
-    documentType,
-    setDocumentType,
-  ] = useState("receipt");
+  const [selectedFile, setSelectedFile] =
+    useState(null);
 
-  const [
-    selectedFile,
-    setSelectedFile,
-  ] = useState(null);
+  const [uploadingDocument, setUploadingDocument] =
+    useState(false);
 
-  const [
-    uploadingDocument,
-    setUploadingDocument,
-  ] = useState(false);
+  const [deletingDocumentId, setDeletingDocumentId] =
+    useState(null);
 
-  const [
-    deletingDocumentId,
-    setDeletingDocumentId,
-  ] = useState(null);
+  const [documentError, setDocumentError] =
+    useState("");
 
-  const [
-    documentError,
-    setDocumentError,
-  ] = useState("");
-
-  const [
-    documentMessage,
-    setDocumentMessage,
-  ] = useState("");
-
+  const [documentMessage, setDocumentMessage] =
+    useState("");
 
   // LOAD REPAIR
 
@@ -123,14 +82,12 @@ export default function EditRepairPage() {
         const {
           data: { user },
           error: userError,
-        } =
-          await supabase.auth.getUser();
+        } = await supabase.auth.getUser();
 
         if (userError || !user) {
           setError(
             "You need to be signed in to edit a repair."
           );
-
           return;
         }
 
@@ -150,24 +107,13 @@ export default function EditRepairPage() {
             loadError
           );
 
-          setError(
-            "Could not find this repair."
-          );
-
+          setError("Could not find this repair.");
           return;
         }
 
-        setTitle(
-          data.title || ""
-        );
-
-        setCategory(
-          data.category || ""
-        );
-
-        setRepairDate(
-          data.repair_date || ""
-        );
+        setTitle(data.title || "");
+        setCategory(data.category || "");
+        setRepairDate(data.repair_date || "");
 
         setCost(
           data.cost !== null &&
@@ -176,13 +122,8 @@ export default function EditRepairPage() {
             : ""
         );
 
-        setNotes(
-          data.notes || ""
-        );
-
-        setCompleted(
-          Boolean(data.completed)
-        );
+        setNotes(data.notes || "");
+        setCompleted(Boolean(data.completed));
       } catch (loadCatchError) {
         console.error(
           "Could not load repair:",
@@ -202,7 +143,6 @@ export default function EditRepairPage() {
     }
   }, [repairId]);
 
-
   // LOAD DOCUMENTS
 
   async function loadDocuments() {
@@ -213,14 +153,12 @@ export default function EditRepairPage() {
       const {
         data: { user },
         error: userError,
-      } =
-        await supabase.auth.getUser();
+      } = await supabase.auth.getUser();
 
       if (userError || !user) {
         setDocumentError(
           "Please sign in to view documents."
         );
-
         return;
       }
 
@@ -232,12 +170,9 @@ export default function EditRepairPage() {
         .select("*")
         .eq("user_id", user.id)
         .eq("repair_id", repairId)
-        .order(
-          "created_at",
-          {
-            ascending: false,
-          }
-        );
+        .order("created_at", {
+          ascending: false,
+        });
 
       if (loadError) {
         console.error(
@@ -248,13 +183,10 @@ export default function EditRepairPage() {
         setDocumentError(
           "We couldn't load your documents."
         );
-
         return;
       }
 
-      setDocuments(
-        data || []
-      );
+      setDocuments(data || []);
     } catch (loadCatchError) {
       console.error(
         "Could not load repair documents:",
@@ -269,42 +201,30 @@ export default function EditRepairPage() {
     }
   }
 
-
   useEffect(() => {
     if (repairId) {
       loadDocuments();
     }
   }, [repairId]);
 
-
   // SAVE REPAIR
 
   async function handleSubmit(event) {
     event.preventDefault();
-
     setError("");
 
     if (!title.trim()) {
-      setError(
-        "Please enter a repair title."
-      );
-
+      setError("Please enter a repair title.");
       return;
     }
 
     if (!category) {
-      setError(
-        "Please choose a category."
-      );
-
+      setError("Please choose a category.");
       return;
     }
 
     if (!repairDate) {
-      setError(
-        "Please enter the repair date."
-      );
-
+      setError("Please enter the repair date.");
       return;
     }
 
@@ -314,40 +234,24 @@ export default function EditRepairPage() {
       const {
         data: { user },
         error: userError,
-      } =
-        await supabase.auth.getUser();
+      } = await supabase.auth.getUser();
 
       if (userError || !user) {
         setError(
           "You need to be signed in to save this repair."
         );
-
-        setSaving(false);
         return;
       }
 
-      const {
-        error: updateError,
-      } = await supabase
+      const { error: updateError } = await supabase
         .from("repairs")
         .update({
-          title:
-            title.trim(),
-
+          title: title.trim(),
           category,
-
-          repair_date:
-            repairDate,
-
+          repair_date: repairDate,
           cost:
-            cost === ""
-              ? null
-              : Number(cost),
-
-          notes:
-            notes.trim() ||
-            null,
-
+            cost === "" ? null : Number(cost),
+          notes: notes.trim() || null,
           completed,
         })
         .eq("id", repairId)
@@ -362,14 +266,10 @@ export default function EditRepairPage() {
         setError(
           "Could not save the repair. Please try again."
         );
-
-        setSaving(false);
         return;
       }
 
-      router.push(
-        "/repairs"
-      );
+      router.push("/repairs");
     } catch (saveError) {
       console.error(
         "Could not update repair:",
@@ -379,18 +279,15 @@ export default function EditRepairPage() {
       setError(
         "Something went wrong. Please try again."
       );
-
+    } finally {
       setSaving(false);
     }
   }
 
-
   // CHOOSE DOCUMENT
 
   function handleFileChange(event) {
-    const file =
-      event.target.files?.[0] ||
-      null;
+    const file = event.target.files?.[0] || null;
 
     setDocumentError("");
     setDocumentMessage("");
@@ -400,26 +297,18 @@ export default function EditRepairPage() {
       return;
     }
 
-    if (
-      !allowedFileTypes.includes(
-        file.type
-      )
-    ) {
+    if (!allowedFileTypes.includes(file.type)) {
       setSelectedFile(null);
 
       setDocumentError(
-        "Please choose a JPEG, PNG, WebP or PDF file."
+        "Please choose a JPEG, PNG or PDF file."
       );
 
       event.target.value = "";
-
       return;
     }
 
-    if (
-      file.size >
-      maxFileSize
-    ) {
+    if (file.size > maxFileSize) {
       setSelectedFile(null);
 
       setDocumentError(
@@ -427,13 +316,11 @@ export default function EditRepairPage() {
       );
 
       event.target.value = "";
-
       return;
     }
 
     setSelectedFile(file);
   }
-
 
   // UPLOAD DOCUMENT
 
@@ -442,7 +329,6 @@ export default function EditRepairPage() {
       setDocumentError(
         "Please choose a file to upload."
       );
-
       return;
     }
 
@@ -456,19 +342,14 @@ export default function EditRepairPage() {
       const {
         data: { user },
         error: userError,
-      } =
-        await supabase.auth.getUser();
+      } = await supabase.auth.getUser();
 
       if (userError || !user) {
         setDocumentError(
           "Please sign in before uploading a document."
         );
-
         return;
       }
-
-
-      // Make the filename safe for Storage.
 
       const safeFileName =
         selectedFile.name.replace(
@@ -476,38 +357,21 @@ export default function EditRepairPage() {
           "_"
         );
 
-
-      // Give every upload a unique name.
-
       const uniqueFileName =
         `${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
 
-
-      // IMPORTANT:
-      // first folder is the user's ID.
-      // This matches the Storage security policies.
-
+      // Keep the existing Storage folder structure.
       const filePath =
         `${user.id}/repair/${repairId}/${uniqueFileName}`;
 
-
-      // Upload the actual file.
-
-      const {
-        error: uploadError,
-      } = await supabase.storage
-        .from("home-documents")
-        .upload(
-          filePath,
-          selectedFile,
-          {
+      const { error: uploadError } =
+        await supabase.storage
+          .from("home-documents")
+          .upload(filePath, selectedFile, {
             cacheControl: "3600",
             upsert: false,
-            contentType:
-              selectedFile.type,
-          }
-        );
-
+            contentType: selectedFile.type,
+          });
 
       if (uploadError) {
         console.error(
@@ -517,51 +381,27 @@ export default function EditRepairPage() {
 
         setDocumentError(
           `Upload failed: ${
-            uploadError.message ||
-            "Please try again."
+            uploadError.message || "Please try again."
           }`
         );
-
         return;
       }
 
-
       uploadedPath = filePath;
 
-
-      // Save the file information
-      // in the documents table.
-
-      const {
-        error: insertError,
-      } = await supabase
-        .from("documents")
-        .insert({
-          user_id:
-            user.id,
-
-          maintenance_id:
-            null,
-
-          repair_id:
-            repairId,
-
-          document_type:
-            documentType,
-
-          file_name:
-            selectedFile.name,
-
-          file_path:
-            filePath,
-
-          file_type:
-            selectedFile.type,
-
-          file_size:
-            selectedFile.size,
-        });
-
+      const { error: insertError } =
+        await supabase
+          .from("documents")
+          .insert({
+            user_id: user.id,
+            maintenance_id: null,
+            repair_id: repairId,
+            document_type: documentType,
+            file_name: selectedFile.name,
+            file_path: filePath,
+            file_type: selectedFile.type,
+            file_size: selectedFile.size,
+          });
 
       if (insertError) {
         console.error(
@@ -569,36 +409,20 @@ export default function EditRepairPage() {
           insertError
         );
 
-
-        // Remove the Storage file if
-        // the database row failed.
-
         await supabase.storage
           .from("home-documents")
-          .remove([
-            filePath,
-          ]);
-
+          .remove([filePath]);
 
         setDocumentError(
           `The file uploaded, but its record could not be saved: ${
-            insertError.message ||
-            "Please try again."
+            insertError.message || "Please try again."
           }`
         );
-
         return;
       }
 
-
-      // Clear the upload box.
-
       setSelectedFile(null);
-
-      setDocumentType(
-        "receipt"
-      );
-
+      setDocumentType("receipt");
 
       const fileInput =
         document.getElementById(
@@ -609,33 +433,22 @@ export default function EditRepairPage() {
         fileInput.value = "";
       }
 
-
       setDocumentMessage(
         "Document uploaded successfully."
       );
 
-
-      // Refresh document list.
-
       await loadDocuments();
-
     } catch (uploadCatchError) {
       console.error(
         "Could not upload repair document:",
         uploadCatchError
       );
 
-
-      // Clean up Storage if needed.
-
       if (uploadedPath) {
         await supabase.storage
           .from("home-documents")
-          .remove([
-            uploadedPath,
-          ]);
+          .remove([uploadedPath]);
       }
-
 
       setDocumentError(
         `Something went wrong uploading the document: ${
@@ -643,22 +456,23 @@ export default function EditRepairPage() {
           "Please try again."
         }`
       );
-
     } finally {
-      setUploadingDocument(
-        false
-      );
+      setUploadingDocument(false);
     }
   }
 
-
   // VIEW DOCUMENT
+  // FIXED FOR MOBILE BROWSERS
 
-  async function handleViewDocument(
-    documentItem
-  ) {
+  async function handleViewDocument(documentItem) {
     setDocumentError("");
     setDocumentMessage("");
+
+    // Open a tab immediately when View is tapped.
+    const newTab = window.open(
+      "about:blank",
+      "_blank"
+    );
 
     try {
       const {
@@ -671,11 +485,14 @@ export default function EditRepairPage() {
           60
         );
 
-
       if (
         signedUrlError ||
         !data?.signedUrl
       ) {
+        if (newTab && !newTab.closed) {
+          newTab.close();
+        }
+
         console.error(
           "Could not open repair document:",
           signedUrlError
@@ -692,14 +509,23 @@ export default function EditRepairPage() {
         return;
       }
 
-
-      window.open(
-        data.signedUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
-
+      if (newTab && !newTab.closed) {
+        newTab.opener = null;
+        newTab.location.replace(
+          data.signedUrl
+        );
+      } else {
+        // If the new tab is blocked,
+        // open the photo in this tab.
+        window.location.assign(
+          data.signedUrl
+        );
+      }
     } catch (viewError) {
+      if (newTab && !newTab.closed) {
+        newTab.close();
+      }
+
       console.error(
         "Could not open repair document:",
         viewError
@@ -711,41 +537,28 @@ export default function EditRepairPage() {
     }
   }
 
-
   // DELETE DOCUMENT
 
-  async function handleDeleteDocument(
-    documentItem
-  ) {
-    const confirmed =
-      window.confirm(
-        `Delete "${documentItem.file_name}"? This cannot be undone.`
-      );
+  async function handleDeleteDocument(documentItem) {
+    const confirmed = window.confirm(
+      `Delete "${documentItem.file_name}"? This cannot be undone.`
+    );
 
     if (!confirmed) {
       return;
     }
 
-
-    setDeletingDocumentId(
-      documentItem.id
-    );
-
+    setDeletingDocumentId(documentItem.id);
     setDocumentError("");
     setDocumentMessage("");
 
-
     try {
-      // Delete actual file first.
-
-      const {
-        error: storageError,
-      } = await supabase.storage
-        .from("home-documents")
-        .remove([
-          documentItem.file_path,
-        ]);
-
+      const { error: storageError } =
+        await supabase.storage
+          .from("home-documents")
+          .remove([
+            documentItem.file_path,
+          ]);
 
       if (storageError) {
         console.error(
@@ -759,46 +572,27 @@ export default function EditRepairPage() {
             "Please try again."
           }`
         );
-
         return;
       }
-
 
       const {
         data: { user },
         error: userError,
-      } =
-        await supabase.auth.getUser();
+      } = await supabase.auth.getUser();
 
-
-      if (
-        userError ||
-        !user
-      ) {
+      if (userError || !user) {
         setDocumentError(
           "The file was removed, but the document record could not be cleared because you are no longer signed in."
         );
-
         return;
       }
 
-
-      // Delete database record.
-
-      const {
-        error: deleteError,
-      } = await supabase
-        .from("documents")
-        .delete()
-        .eq(
-          "id",
-          documentItem.id
-        )
-        .eq(
-          "user_id",
-          user.id
-        );
-
+      const { error: deleteError } =
+        await supabase
+          .from("documents")
+          .delete()
+          .eq("id", documentItem.id)
+          .eq("user_id", user.id);
 
       if (deleteError) {
         console.error(
@@ -812,25 +606,19 @@ export default function EditRepairPage() {
             "Please try again."
           }`
         );
-
         return;
       }
 
-
-      setDocuments(
-        (current) =>
-          current.filter(
-            (item) =>
-              item.id !==
-              documentItem.id
-          )
+      setDocuments((current) =>
+        current.filter(
+          (item) =>
+            item.id !== documentItem.id
+        )
       );
-
 
       setDocumentMessage(
         "Document deleted."
       );
-
     } catch (deleteCatchError) {
       console.error(
         "Could not delete repair document:",
@@ -840,64 +628,43 @@ export default function EditRepairPage() {
       setDocumentError(
         "Something went wrong deleting the document."
       );
-
     } finally {
-      setDeletingDocumentId(
-        null
-      );
+      setDeletingDocumentId(null);
     }
   }
 
-
-  // FILE SIZE
+  // HELPERS
 
   function formatFileSize(bytes) {
-    const size =
-      Number(bytes || 0);
+    const size = Number(bytes || 0);
 
     if (size < 1024) {
       return `${size} B`;
     }
 
-    if (
-      size <
-      1024 * 1024
-    ) {
-      return `${(
-        size / 1024
-      ).toFixed(1)} KB`;
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
     }
 
     return `${(
-      size /
-      (1024 * 1024)
+      size / (1024 * 1024)
     ).toFixed(1)} MB`;
   }
 
-
-  // DOCUMENT TYPE LABEL
-
-  function getDocumentTypeLabel(
-    value
-  ) {
+  function getDocumentTypeLabel(value) {
     return (
       documentTypes.find(
-        (item) =>
-          item.value === value
-      )?.label ||
-      "Other"
+        (item) => item.value === value
+      )?.label || "Other"
     );
   }
-
 
   // LOADING
 
   if (loading) {
     return (
       <main className="formPage">
-
         <div className="formContainer">
-
           <Link
             href="/repairs"
             className="backLink"
@@ -906,40 +673,28 @@ export default function EditRepairPage() {
           </Link>
 
           <div className="formHeader">
-
             <p className="eyebrow">
               YOUR HOME
             </p>
 
-            <h1>
-              Edit repair
-            </h1>
+            <h1>Edit repair</h1>
 
             <p>
-              Update the details of
-              your repair.
+              Update the details of your repair.
             </p>
-
           </div>
 
           <div className="maintenanceForm">
-            <p>
-              Loading repair...
-            </p>
+            <p>Loading repair...</p>
           </div>
-
         </div>
-
       </main>
     );
   }
 
-
   return (
     <main className="formPage">
-
       <div className="formContainer">
-
         <Link
           href="/repairs"
           className="backLink"
@@ -947,38 +702,25 @@ export default function EditRepairPage() {
           ← Repairs
         </Link>
 
-
         <header className="formHeader">
-
           <p className="eyebrow">
             YOUR HOME
           </p>
 
-          <h1>
-            Edit repair
-          </h1>
+          <h1>Edit repair</h1>
 
           <p>
-            Update the details of
-            your repair.
+            Update the details of your repair.
           </p>
-
         </header>
 
-
-        {/* ================================
-            REPAIR FORM
-            ================================ */}
+        {/* REPAIR FORM */}
 
         <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
-
-          {/* REPAIR TITLE */}
-
           <div className="field">
-
             <label htmlFor="title">
               Repair title
             </label>
@@ -988,59 +730,37 @@ export default function EditRepairPage() {
               type="text"
               value={title}
               onChange={(event) =>
-                setTitle(
-                  event.target.value
-                )
+                setTitle(event.target.value)
               }
               placeholder="e.g. Boiler repair"
               required
             />
-
           </div>
 
-
-          {/* CATEGORY */}
-
           <div className="field">
-
-            <label>
-              Category
-            </label>
+            <label>Category</label>
 
             <div className="categoryGrid">
-
-              {categories.map(
-                (option) => (
-
-                  <button
-                    key={option}
-                    type="button"
-                    className={`categoryOption ${
-                      category === option
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setCategory(
-                        option
-                      )
-                    }
-                  >
-                    {option}
-                  </button>
-
-                )
-              )}
-
+              {categories.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`categoryOption ${
+                    category === option
+                      ? "selected"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setCategory(option)
+                  }
+                >
+                  {option}
+                </button>
+              ))}
             </div>
-
           </div>
 
-
-          {/* REPAIR DATE */}
-
           <div className="field">
-
             <label htmlFor="repairDate">
               Repair date
             </label>
@@ -1056,23 +776,15 @@ export default function EditRepairPage() {
               }
               required
             />
-
           </div>
 
-
-          {/* COST */}
-
           <div className="field">
-
             <label htmlFor="cost">
               Cost (£)
             </label>
 
             <div className="costInput">
-
-              <span>
-                £
-              </span>
+              <span>£</span>
 
               <input
                 id="cost"
@@ -1081,22 +793,14 @@ export default function EditRepairPage() {
                 step="0.01"
                 value={cost}
                 onChange={(event) =>
-                  setCost(
-                    event.target.value
-                  )
+                  setCost(event.target.value)
                 }
                 placeholder="0.00"
               />
-
             </div>
-
           </div>
 
-
-          {/* NOTES */}
-
           <div className="field">
-
             <label htmlFor="notes">
               Notes
             </label>
@@ -1106,20 +810,13 @@ export default function EditRepairPage() {
               rows="5"
               value={notes}
               onChange={(event) =>
-                setNotes(
-                  event.target.value
-                )
+                setNotes(event.target.value)
               }
               placeholder="Add any useful details about the repair..."
             />
-
           </div>
 
-
-          {/* COMPLETION STATUS */}
-
           <div className="field">
-
             <label>
               Repair status
             </label>
@@ -1132,20 +829,14 @@ export default function EditRepairPage() {
                   : ""
               }`}
               onClick={() =>
-                setCompleted(
-                  !completed
-                )
+                setCompleted(!completed)
               }
             >
               {completed
                 ? "✓ Completed"
                 : "Mark as completed"}
             </button>
-
           </div>
-
-
-          {/* ERROR */}
 
           {error && (
             <p className="formError">
@@ -1153,11 +844,7 @@ export default function EditRepairPage() {
             </p>
           )}
 
-
-          {/* BUTTONS */}
-
           <div className="formActions">
-
             <button
               type="submit"
               className="primaryButton"
@@ -1168,32 +855,20 @@ export default function EditRepairPage() {
                 : "Save changes"}
             </button>
 
-
             <Link
               href="/repairs"
               className="secondaryButton"
             >
               Cancel
             </Link>
-
           </div>
-
         </form>
 
-
-        {/* ================================
-            DOCUMENTS & RECEIPTS
-
-            IMPORTANT:
-            This is outside the repair form.
-            ================================ */}
+        {/* DOCUMENTS & RECEIPTS */}
 
         <div className="documentsSection">
-
           <div className="documentsHeader">
-
             <div>
-
               <p className="eyebrow">
                 DOCUMENTS & RECEIPTS
               </p>
@@ -1203,68 +878,46 @@ export default function EditRepairPage() {
               </h2>
 
               <p>
-                Keep receipts,
-                invoices, warranties,
-                manuals and photos
-                with this repair
+                Keep receipts, invoices,
+                warranties, manuals and
+                photos with this repair
                 record.
               </p>
-
             </div>
-
 
             <span className="documentsCount">
               {documents.length}
             </span>
-
           </div>
 
-
-          {/* UPLOAD BOX */}
+          {/* DOCUMENT UPLOAD */}
 
           <div className="documentUploadPanel">
-
             <label className="field">
-
               <span>
                 Document type
               </span>
 
               <select
-                value={
-                  documentType
-                }
+                value={documentType}
                 onChange={(event) =>
                   setDocumentType(
                     event.target.value
                   )
                 }
               >
-
-                {documentTypes.map(
-                  (item) => (
-
-                    <option
-                      key={
-                        item.value
-                      }
-                      value={
-                        item.value
-                      }
-                    >
-                      {item.label}
-                    </option>
-
-                  )
-                )}
-
+                {documentTypes.map((item) => (
+                  <option
+                    key={item.value}
+                    value={item.value}
+                  >
+                    {item.label}
+                  </option>
+                ))}
               </select>
-
             </label>
 
-
             <label className="field">
-
               <span>
                 Choose file
               </span>
@@ -1272,35 +925,23 @@ export default function EditRepairPage() {
               <input
                 id="repairDocumentFile"
                 type="file"
-               accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
-                onChange={
-                  handleFileChange
-                }
+                accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                onChange={handleFileChange}
               />
 
               <small className="documentHint">
-                JPEG, PNG or PDF. Maximum 10 MB.
+                JPEG, PNG or PDF.
+                Maximum 10 MB.
               </small>
-
             </label>
 
-
-            {/* SELECTED FILE */}
-
             {selectedFile && (
-
               <div className="selectedDocument">
-
-                <span>
-                  📎
-                </span>
+                <span>📎</span>
 
                 <div>
-
                   <strong>
-                    {
-                      selectedFile.name
-                    }
+                    {selectedFile.name}
                   </strong>
 
                   <small>
@@ -1308,22 +949,14 @@ export default function EditRepairPage() {
                       selectedFile.size
                     )}
                   </small>
-
                 </div>
-
               </div>
-
             )}
-
-
-            {/* UPLOAD BUTTON */}
 
             <button
               type="button"
               className="documentUploadButton"
-              onClick={
-                handleDocumentUpload
-              }
+              onClick={handleDocumentUpload}
               disabled={
                 !selectedFile ||
                 uploadingDocument
@@ -1333,78 +966,51 @@ export default function EditRepairPage() {
                 ? "Uploading..."
                 : "Upload document"}
             </button>
-
           </div>
 
-
-          {/* DOCUMENT ERROR */}
+          {/* DOCUMENT MESSAGES */}
 
           {documentError && (
-
             <p className="documentError">
               {documentError}
             </p>
-
           )}
 
-
-          {/* DOCUMENT SUCCESS */}
-
           {documentMessage && (
-
             <p className="documentSuccess">
               {documentMessage}
             </p>
-
           )}
 
-
-          {/* DOCUMENT LIST */}
+          {/* SAVED DOCUMENTS */}
 
           {documentsLoading ? (
-
             <div className="documentsEmpty">
               Loading documents...
             </div>
-
           ) : documents.length === 0 ? (
-
             <div className="documentsEmpty">
-
-              <span>
-                📄
-              </span>
+              <span>📄</span>
 
               <div>
-
                 <strong>
                   No documents yet
                 </strong>
 
                 <p>
-                  Files uploaded for
-                  this repair will
-                  appear here.
+                  Files uploaded for this
+                  repair will appear here.
                 </p>
-
               </div>
-
             </div>
-
           ) : (
-
             <div className="documentsList">
-
               {documents.map(
                 (documentItem) => (
-
                   <div
                     className="documentCard"
-                    key={
-                      documentItem.id
-                    }
+                    key={documentItem.id}
                   >
-
                     <div className="documentFileIcon">
                       {documentItem.file_type ===
                       "application/pdf"
@@ -1412,18 +1018,12 @@ export default function EditRepairPage() {
                         : "📷"}
                     </div>
 
-
                     <div className="documentDetails">
-
                       <strong>
-                        {
-                          documentItem.file_name
-                        }
+                        {documentItem.file_name}
                       </strong>
 
-
                       <div className="documentMeta">
-
                         <span>
                           {getDocumentTypeLabel(
                             documentItem.document_type
@@ -1435,14 +1035,10 @@ export default function EditRepairPage() {
                             documentItem.file_size
                           )}
                         </span>
-
                       </div>
-
                     </div>
 
-
                     <div className="documentActions">
-
                       <button
                         type="button"
                         onClick={() =>
@@ -1453,7 +1049,6 @@ export default function EditRepairPage() {
                       >
                         View
                       </button>
-
 
                       <button
                         type="button"
@@ -1473,22 +1068,14 @@ export default function EditRepairPage() {
                           ? "Deleting..."
                           : "Delete"}
                       </button>
-
                     </div>
-
                   </div>
-
                 )
               )}
-
             </div>
-
           )}
-
         </div>
-
       </div>
-
     </main>
   );
 }
