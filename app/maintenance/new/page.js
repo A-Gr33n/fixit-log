@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -213,7 +214,9 @@ export default function NewMaintenancePage() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        setError("Please sign in before adding maintenance.");
+        setError(
+          "Please sign in before adding maintenance."
+        );
         return;
       }
 
@@ -294,7 +297,7 @@ export default function NewMaintenancePage() {
           </p>
         </header>
 
-                <form
+        <form
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
@@ -483,7 +486,9 @@ export default function NewMaintenancePage() {
           <section className="documentsSection">
             <div className="documentsHeader">
               <div>
-                <p className="eyebrow">DOCUMENTS & RECEIPTS</p>
+                <p className="eyebrow">
+                  DOCUMENTS & RECEIPTS
+                </p>
                 <h2>Attach files</h2>
                 <p>
                   Add receipts, invoices, warranties,
@@ -520,9 +525,33 @@ export default function NewMaintenancePage() {
                 </select>
               </div>
 
+              {/* NEW: Take Photo option */}
+              <div className="field">
+                <label htmlFor="maintenanceCamera">
+                  📷 Take photo of receipt or document
+                </label>
+
+                <input
+                  id="maintenanceCamera"
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  capture="environment"
+                  onChange={handleAddFiles}
+                  disabled={saving}
+                />
+
+                <small className="documentHint">
+                  On compatible mobile devices, this
+                  requests the rear camera so you can
+                  photograph a receipt or document.
+                  Maximum 10 MB per photo.
+                </small>
+              </div>
+
+              {/* Existing file upload option */}
               <div className="field">
                 <label htmlFor="maintenanceFiles">
-                  Choose files
+                  Choose existing files
                 </label>
 
                 <input
@@ -531,6 +560,7 @@ export default function NewMaintenancePage() {
                   multiple
                   accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
                   onChange={handleAddFiles}
+                  disabled={saving}
                 />
 
                 <small className="documentHint">

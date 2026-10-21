@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -106,7 +107,10 @@ export default function NewRepairPage() {
           });
 
       if (uploadError) {
-        console.error("Document upload failed:", uploadError);
+        console.error(
+          "Document upload failed:",
+          uploadError
+        );
         failures.push(file.name);
         continue;
       }
@@ -125,7 +129,10 @@ export default function NewRepairPage() {
         });
 
       if (documentError) {
-        console.error("Document record failed:", documentError);
+        console.error(
+          "Document record failed:",
+          documentError
+        );
 
         await supabase.storage
           .from("home-documents")
@@ -168,7 +175,9 @@ export default function NewRepairPage() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        setError("Please sign in before adding a repair.");
+        setError(
+          "Please sign in before adding a repair."
+        );
         return;
       }
 
@@ -188,8 +197,13 @@ export default function NewRepairPage() {
           .single();
 
       if (insertError || !repair) {
-        console.error("Could not save repair:", insertError);
-        setError("Could not save the repair. Please try again.");
+        console.error(
+          "Could not save repair:",
+          insertError
+        );
+        setError(
+          "Could not save the repair. Please try again."
+        );
         return;
       }
 
@@ -209,7 +223,10 @@ export default function NewRepairPage() {
 
       router.push("/repairs");
     } catch (saveError) {
-      console.error("Could not save repair:", saveError);
+      console.error(
+        "Could not save repair:",
+        saveError
+      );
       setError(
         "Something went wrong. Check your Repairs list before trying again."
       );
@@ -238,7 +255,7 @@ export default function NewRepairPage() {
           className="maintenanceForm"
           onSubmit={handleSubmit}
         >
-                  <p
+          <p
             style={{
               fontSize: "13px",
               lineHeight: "1.6",
@@ -247,16 +264,21 @@ export default function NewRepairPage() {
             }}
           >
             Enter a repair title and date to get started.
-            You can add costs, notes and documents if you have them.
+            You can add costs, notes and documents if
+            you have them.
           </p>
 
           <div className="field">
-            <label htmlFor="title">Repair title</label>
+            <label htmlFor="title">
+              Repair title
+            </label>
             <input
               id="title"
               type="text"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
               placeholder="e.g. Boiler repair"
               required
             />
@@ -270,9 +292,13 @@ export default function NewRepairPage() {
                   key={option}
                   type="button"
                   className={`categoryOption ${
-                    category === option ? "selected" : ""
+                    category === option
+                      ? "selected"
+                      : ""
                   }`}
-                  onClick={() => setCategory(option)}
+                  onClick={() =>
+                    setCategory(option)
+                  }
                 >
                   {option}
                 </button>
@@ -281,7 +307,9 @@ export default function NewRepairPage() {
           </div>
 
           <div className="field">
-            <label htmlFor="repairDate">Repair date</label>
+            <label htmlFor="repairDate">
+              Repair date
+            </label>
             <input
               id="repairDate"
               type="date"
@@ -294,7 +322,9 @@ export default function NewRepairPage() {
           </div>
 
           <div className="field">
-            <label htmlFor="cost">Cost (£)</label>
+            <label htmlFor="cost">
+              Cost (£)
+            </label>
             <div className="costInput">
               <span>£</span>
               <input
@@ -303,19 +333,25 @@ export default function NewRepairPage() {
                 min="0"
                 step="0.01"
                 value={cost}
-                onChange={(event) => setCost(event.target.value)}
+                onChange={(event) =>
+                  setCost(event.target.value)
+                }
                 placeholder="0.00"
               />
             </div>
           </div>
 
           <div className="field">
-            <label htmlFor="notes">Notes</label>
+            <label htmlFor="notes">
+              Notes
+            </label>
             <textarea
               id="notes"
               rows="5"
               value={notes}
-              onChange={(event) => setNotes(event.target.value)}
+              onChange={(event) =>
+                setNotes(event.target.value)
+              }
               placeholder="Add any useful details..."
             />
           </div>
@@ -323,13 +359,16 @@ export default function NewRepairPage() {
           <section className="documentsSection">
             <div className="documentsHeader">
               <div>
-                <p className="eyebrow">DOCUMENTS & RECEIPTS</p>
+                <p className="eyebrow">
+                  DOCUMENTS & RECEIPTS
+                </p>
                 <h2>Attach files</h2>
                 <p>
                   Add receipts, invoices, warranties,
                   manuals or photos before saving.
                 </p>
               </div>
+
               <span className="documentsCount">
                 {attachments.length}
               </span>
@@ -344,7 +383,9 @@ export default function NewRepairPage() {
                   id="repairDocumentType"
                   value={documentType}
                   onChange={(event) =>
-                    setDocumentType(event.target.value)
+                    setDocumentType(
+                      event.target.value
+                    )
                   }
                 >
                   {documentTypes.map((option) => (
@@ -358,17 +399,44 @@ export default function NewRepairPage() {
                 </select>
               </div>
 
+              {/* NEW: Take Photo option */}
+              <div className="field">
+                <label htmlFor="repairCamera">
+                  📷 Take photo of receipt or document
+                </label>
+
+                <input
+                  id="repairCamera"
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  capture="environment"
+                  onChange={handleAddFiles}
+                  disabled={saving}
+                />
+
+                <small className="documentHint">
+                  On compatible mobile devices, this
+                  opens the camera so you can photograph
+                  a receipt, invoice or document.
+                  Maximum 10 MB per photo.
+                </small>
+              </div>
+
+              {/* Existing file upload option */}
               <div className="field">
                 <label htmlFor="repairFiles">
-                  Choose files
+                  Choose existing files
                 </label>
+
                 <input
                   id="repairFiles"
                   type="file"
                   multiple
                   accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
                   onChange={handleAddFiles}
+                  disabled={saving}
                 />
+
                 <small className="documentHint">
                   Optional. JPG, PNG or PDF.
                   Maximum 10 MB per file.
@@ -394,11 +462,13 @@ export default function NewRepairPage() {
                       <strong>
                         {attachment.file.name}
                       </strong>
+
                       <div className="documentMeta">
                         <span>
                           {documentTypes.find(
                             (type) =>
-                              type.value === attachment.type
+                              type.value ===
+                              attachment.type
                           )?.label}
                         </span>
                       </div>
@@ -408,7 +478,9 @@ export default function NewRepairPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          removeAttachment(attachment.id)
+                          removeAttachment(
+                            attachment.id
+                          )
                         }
                         disabled={saving}
                       >
@@ -422,7 +494,10 @@ export default function NewRepairPage() {
           </section>
 
           {error && (
-            <p className="formError" role="alert">
+            <p
+              className="formError"
+              role="alert"
+            >
               {error}
             </p>
           )}
