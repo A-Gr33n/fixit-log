@@ -749,62 +749,58 @@ export default function EditMaintenancePage() {
 
   // VIEW DOCUMENT
 
-  async function handleViewDocument(
-    documentItem
-  ) {
-    setDocumentError("");
-    setDocumentMessage("");
+async function handleViewDocument(documentItem) {
+  setDocumentError("");
+  setDocumentMessage("");
 
-    try {
-      const {
-        data,
-        error: signedUrlError,
-      } = await supabase.storage
-        .from(
-          "home-documents"
-        )
-        .createSignedUrl(
-          documentItem.file_path,
-          60
-        );
+  // Open a blank tab immediately while the
+  // user's tap is still recognised by the browser.
+  const newTab = window.open("about:blank", "_blank");
 
-      if (
-        signedUrlError ||
-        !data?.signedUrl
-      ) {
-        console.error(
-          "Could not open document:",
-          signedUrlError
-        );
+  try {
+    const { data, error: signedUrlError } =
+      await supabase.storage
+        .from("home-documents")
+        .createSignedUrl(documentItem.file_path, 60);
 
-        setDocumentError(
-          `We couldn't open that document${
-            signedUrlError?.message
-              ? `: ${signedUrlError.message}`
-              : "."
-          }`
-        );
+    if (signedUrlError || !data?.signedUrl) {
+      if (newTab) newTab.close();
 
-        return;
-      }
-
-      window.open(
-        data.signedUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
-    } catch (viewError) {
       console.error(
         "Could not open document:",
-        viewError
+        signedUrlError
       );
 
       setDocumentError(
-        "Something went wrong opening the document."
+        "We couldn't open that document. Please try again."
       );
+      return;
     }
-  }
 
+    if (newTab && !newTab.closed) {
+      newTab.opener = null;
+      newTab.location.replace(data.signedUrl);
+    } else {
+      // Fallback if the browser blocked the new tab.
+      window.location.assign(data.signedUrl);
+    }
+  } catch (viewError) {
+    if (newTab && !newTab.closed) {
+      newTab.close();
+    }
+
+    console.error(
+      "Could not open document:",
+      viewError
+    );
+
+    setDocumentError(
+      "Something went wrong opening the document."
+    );
+  }
+}
+
+    
 
   // DELETE DOCUMENT
 
