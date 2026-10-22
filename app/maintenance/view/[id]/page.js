@@ -308,16 +308,18 @@ export default function ViewMaintenancePage() {
           </div>
 
           <Link
-            href={`/maintenance/edit/${id}`}
-            className="primaryButton"
-            style={{
-              display: "inline-block",
-              textAlign: "center",
-              textDecoration: "none",
-            }}
-          >
-            Edit maintenance →
-          </Link>
+        href={`/maintenance/edit/${id}`}
+       className="primaryButton"
+        style={{
+        display: "flex",
+         alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        textDecoration: "none",
+        }}
+      >
+      Edit maintenance →
+</Link>
         </section>
 
         <section className="documentsSection">

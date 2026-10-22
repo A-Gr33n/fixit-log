@@ -29,7 +29,11 @@ function formatDate(dateString) {
 }
 
 function formatCost(value) {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
     return "Not recorded";
   }
 
@@ -39,7 +43,10 @@ function formatCost(value) {
 function formatFileSize(bytes) {
   const size = Number(bytes || 0);
 
-  if (size < 1024) return `${size} B`;
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
   if (size < 1024 * 1024) {
     return `${(size / 1024).toFixed(1)} KB`;
   }
@@ -54,10 +61,14 @@ export default function ViewRepairPage() {
 
   const [repair, setRepair] = useState(null);
   const [documents, setDocuments] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [documentsLoading, setDocumentsLoading] = useState(true);
+  const [documentsLoading, setDocumentsLoading] =
+    useState(true);
+
   const [error, setError] = useState("");
-  const [documentError, setDocumentError] = useState("");
+  const [documentError, setDocumentError] =
+    useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -78,7 +89,10 @@ export default function ViewRepairPage() {
           return;
         }
 
-        const { data, error: loadError } = await supabase
+        const {
+          data,
+          error: loadError,
+        } = await supabase
           .from("repairs")
           .select("*")
           .eq("id", id)
@@ -102,7 +116,9 @@ export default function ViewRepairPage() {
           .select("*")
           .eq("user_id", user.id)
           .eq("repair_id", id)
-          .order("created_at", { ascending: false });
+          .order("created_at", {
+            ascending: false,
+          });
 
         if (cancelled) return;
 
@@ -111,6 +127,7 @@ export default function ViewRepairPage() {
             "Could not load repair documents:",
             documentsError
           );
+
           setDocumentError(
             "We couldn't load the attached files."
           );
@@ -118,10 +135,15 @@ export default function ViewRepairPage() {
           setDocuments(documentData || []);
         }
       } catch (loadError) {
-        console.error("Could not load repair:", loadError);
+        console.error(
+          "Could not load repair:",
+          loadError
+        );
 
         if (!cancelled) {
-          setError("Something went wrong loading this repair.");
+          setError(
+            "Something went wrong loading this repair."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -141,17 +163,28 @@ export default function ViewRepairPage() {
   async function handleViewDocument(documentItem) {
     setDocumentError("");
 
-    // Open a tab immediately so mobile browsers allow it.
-    const newTab = window.open("about:blank", "_blank");
+    // Open a blank tab immediately so mobile
+    // browsers recognise the user's tap.
+    const newTab = window.open(
+      "about:blank",
+      "_blank"
+    );
 
     try {
-      const { data, error: signedUrlError } =
-        await supabase.storage
-          .from("home-documents")
-          .createSignedUrl(documentItem.file_path, 60);
+      const {
+        data,
+        error: signedUrlError,
+      } = await supabase.storage
+        .from("home-documents")
+        .createSignedUrl(
+          documentItem.file_path,
+          60
+        );
 
       if (signedUrlError || !data?.signedUrl) {
-        if (newTab && !newTab.closed) newTab.close();
+        if (newTab && !newTab.closed) {
+          newTab.close();
+        }
 
         console.error(
           "Could not open repair document:",
@@ -161,17 +194,24 @@ export default function ViewRepairPage() {
         setDocumentError(
           "We couldn't open that file. Please try again."
         );
+
         return;
       }
 
       if (newTab && !newTab.closed) {
         newTab.opener = null;
-        newTab.location.replace(data.signedUrl);
+        newTab.location.replace(
+          data.signedUrl
+        );
       } else {
-        window.location.assign(data.signedUrl);
+        window.location.assign(
+          data.signedUrl
+        );
       }
     } catch (viewError) {
-      if (newTab && !newTab.closed) newTab.close();
+      if (newTab && !newTab.closed) {
+        newTab.close();
+      }
 
       console.error(
         "Could not open repair document:",
@@ -200,7 +240,10 @@ export default function ViewRepairPage() {
     return (
       <main className="formPage">
         <div className="formContainer">
-          <Link href="/repairs" className="backLink">
+          <Link
+            href="/repairs"
+            className="backLink"
+          >
             ← Back to repairs
           </Link>
 
@@ -215,42 +258,67 @@ export default function ViewRepairPage() {
   return (
     <main className="formPage">
       <div className="formContainer">
-        <Link href="/repairs" className="backLink">
+        <Link
+          href="/repairs"
+          className="backLink"
+        >
           ← Back to repairs
         </Link>
 
         <div className="formHeader">
-          <p className="eyebrow">YOUR HOME</p>
+          <p className="eyebrow">
+            YOUR HOME
+          </p>
+
           <h1>{repair.title}</h1>
-          <p>View your repair details and saved documents.</p>
+
+          <p>
+            View your repair details and
+            saved documents.
+          </p>
         </div>
+
+        {/* REPAIR DETAILS */}
 
         <section className="maintenanceForm">
           <div className="field">
             <span>Category</span>
-            <strong>{repair.category || "Not recorded"}</strong>
+            <strong>
+              {repair.category || "Not recorded"}
+            </strong>
           </div>
 
           <div className="field">
             <span>Status</span>
             <strong>
-              {repair.completed ? "Completed" : "Open"}
+              {repair.completed
+                ? "Completed"
+                : "Open"}
             </strong>
           </div>
 
           <div className="field">
             <span>Repair date</span>
-            <strong>{formatDate(repair.repair_date)}</strong>
+            <strong>
+              {formatDate(repair.repair_date)}
+            </strong>
           </div>
 
           <div className="field">
             <span>Cost</span>
-            <strong>{formatCost(repair.cost)}</strong>
+            <strong>
+              {formatCost(repair.cost)}
+            </strong>
           </div>
 
           <div className="field">
             <span>Notes</span>
-            <p style={{ whiteSpace: "pre-wrap" }}>
+
+            <p
+              style={{
+                whiteSpace: "pre-wrap",
+              }}
+            >
               {repair.notes || "No notes added."}
             </p>
           </div>
@@ -259,7 +327,9 @@ export default function ViewRepairPage() {
             href={`/repairs/${id}/edit`}
             className="primaryButton"
             style={{
-              display: "inline-block",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               textAlign: "center",
               textDecoration: "none",
             }}
@@ -268,13 +338,22 @@ export default function ViewRepairPage() {
           </Link>
         </section>
 
+        {/* DOCUMENTS & RECEIPTS */}
+
         <section className="documentsSection">
           <div className="documentsHeader">
             <div>
-              <p className="eyebrow">DOCUMENTS & RECEIPTS</p>
-              <h2>Files for this job</h2>
+              <p className="eyebrow">
+                DOCUMENTS & RECEIPTS
+              </p>
+
+              <h2>
+                Files for this job
+              </h2>
+
               <p>
-                View your saved photos, receipts, invoices,
+                View your saved photos,
+                receipts, invoices,
                 warranties and manuals.
               </p>
             </div>
@@ -285,7 +364,9 @@ export default function ViewRepairPage() {
           </div>
 
           {documentError && (
-            <p className="documentError">{documentError}</p>
+            <p className="documentError">
+              {documentError}
+            </p>
           )}
 
           {documentsLoading ? (
@@ -295,58 +376,68 @@ export default function ViewRepairPage() {
           ) : documents.length === 0 ? (
             <div className="documentsEmpty">
               <span>📄</span>
+
               <div>
-                <strong>No documents yet</strong>
+                <strong>
+                  No documents yet
+                </strong>
+
                 <p>
-                  Any files attached to this repair will
-                  appear here.
+                  Any files attached to
+                  this repair will appear here.
                 </p>
               </div>
             </div>
           ) : (
             <div className="documentsList">
-              {documents.map((documentItem) => (
-                <div
-                  className="documentCard"
-                  key={documentItem.id}
-                >
-                  <div className="documentFileIcon">
-                    {documentItem.file_type ===
-                    "application/pdf"
-                      ? "PDF"
-                      : "📷"}
-                  </div>
+              {documents.map(
+                (documentItem) => (
+                  <div
+                    className="documentCard"
+                    key={documentItem.id}
+                  >
+                    <div className="documentFileIcon">
+                      {documentItem.file_type ===
+                      "application/pdf"
+                        ? "PDF"
+                        : "📷"}
+                    </div>
 
-                  <div className="documentDetails">
-                    <strong>{documentItem.file_name}</strong>
+                    <div className="documentDetails">
+                      <strong>
+                        {documentItem.file_name}
+                      </strong>
 
-                    <div className="documentMeta">
-                      <span>
-                        {documentTypeLabels[
-                          documentItem.document_type
-                        ] || "Other"}
-                      </span>
+                      <div className="documentMeta">
+                        <span>
+                          {documentTypeLabels[
+                            documentItem.document_type
+                          ] || "Other"}
+                        </span>
 
-                      <span>
-                        {formatFileSize(
-                          documentItem.file_size
-                        )}
-                      </span>
+                        <span>
+                          {formatFileSize(
+                            documentItem.file_size
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="documentActions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleViewDocument(
+                            documentItem
+                          )
+                        }
+                      >
+                        View
+                      </button>
                     </div>
                   </div>
-
-                  <div className="documentActions">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleViewDocument(documentItem)
-                      }
-                    >
-                      View
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </section>
