@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "Keep track of home maintenance, repairs and important documents in one place.",
   verification: {
-    google: <meta name="google-site-verification" content="4ADXsI7fyGi_PivIZf-uo9m3Df0GrwKz-cVvO2AMZZ0" />,
+    google: "4ADXsI7fyGi_PivIZf-uo9m3Df0GrwKz-cVvO2AMZZ0",
   },
 };
 
