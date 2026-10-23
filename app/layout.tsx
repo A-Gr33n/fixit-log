@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "FixIt Log",
   description:
     "Keep track of home maintenance, repairs and important documents in one place.",
+  verification: {
+    google: <meta name="google-site-verification" content="4ADXsI7fyGi_PivIZf-uo9m3Df0GrwKz-cVvO2AMZZ0" />,
+  },
 };
 
 export default function RootLayout({
