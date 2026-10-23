@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FixIt Log",
-  description:
-    "Keep track of home maintenance, repairs and important documents in one place.",
+  title: "FixIt Log | Home Maintenance & Repair Tracker",
+description:
+  "Organise your home maintenance with FixIt Log. Track repairs, manage maintenance schedules, record costs and keep receipts and documents in one place.",
   verification: {
     google: "4ADXsI7fyGi_PivIZf-uo9m3Df0GrwKz-cVvO2AMZZ0",
   },
