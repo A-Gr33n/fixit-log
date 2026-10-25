@@ -65,9 +65,25 @@ export default function Home() {
 </div>
         </div>
 
-        <p className="welcomeFooter">
-          A simple place to keep your home's history.
-        </p>
+       
+<div className="welcomeFooter">
+  <p>A simple place to keep your home's history.</p>
+
+  <p style={{ marginTop: "12px" }}>
+    🏡 Need help getting started?{" "}
+    <Link
+      href="/home-maintenance-checklist"
+      style={{
+        color: "#2563eb",
+        fontWeight: 600,
+        textDecoration: "underline",
+      }}
+    >
+      View our free Home Maintenance Checklist
+    </Link>
+  </p>
+</div>
+
       </div>
     </main>
   );

@@ -7628,3 +7628,141 @@ h1 {
     flex: 1;
   }
 }
+
+/* =========================================
+   HOME MAINTENANCE CHECKLIST
+   ========================================= */
+
+.checklistPage {
+  min-height: 100vh;
+  background: #f5f3ee;
+  padding: 50px 20px;
+  color: #26302b;
+}
+
+.checklistContainer {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.checklistBack {
+  display: inline-block;
+  margin-bottom: 30px;
+  color: #476b55;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.checklistBack:hover {
+  text-decoration: underline;
+}
+
+.checklistHeader {
+  margin-bottom: 35px;
+}
+
+.checklistHeader h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+
+.checklistHeader p {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #5b665f;
+}
+
+.checklistSections {
+  display: grid;
+  gap: 22px;
+}
+
+.checklistCard {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid #e7e8e3;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+.checklistCard h2 {
+  font-size: 21px;
+  margin: 0 0 22px;
+}
+
+.checklistCard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.checklistCard li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 0;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.checklistTick {
+  color: #3f8b5c;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.checklistSafety {
+  margin-top: 30px;
+  font-size: 13px;
+  color: #66736b;
+  line-height: 1.7;
+}
+
+.checklistCTA {
+  margin-top: 45px;
+  background: #26302b;
+  color: white;
+  border-radius: 22px;
+  padding: 40px 30px;
+  text-align: center;
+}
+
+.checklistCTA h2 {
+  font-size: 25px;
+  margin: 0 0 15px;
+}
+
+.checklistCTA p {
+  line-height: 1.7;
+  color: #e3ebe5;
+  margin-bottom: 25px;
+}
+
+.checklistButton {
+  display: inline-block;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: white;
+  color: #26302b;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.checklistButton:hover {
+  background: #e8f1e9;
+}
+
+@media (max-width: 600px) {
+  .checklistPage {
+    padding: 30px 15px;
+  }
+
+  .checklistCard {
+    padding: 22px;
+  }
+
+  .checklistCTA {
+    padding: 30px 20px;
+  }
+}

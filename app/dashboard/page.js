@@ -1384,6 +1384,39 @@ export default function DashboardPage() {
   </span>
 </Link>
 
+{/* HOME MAINTENANCE CHECKLIST */}
+
+<Link
+  href="/home-maintenance-checklist"
+  style={{
+    display: "block",
+    marginTop: "20px",
+    marginBottom: "20px",
+    padding: "20px",
+    backgroundColor: "#f0fdf4",
+    border: "1px solid #bbf7d0",
+    borderRadius: "14px",
+    textDecoration: "none",
+    color: "#166534",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "18px",
+      fontWeight: "bold",
+      marginBottom: "8px",
+    }}
+  >
+    🏡 Home Maintenance Checklist →
+  </h2>
+
+  <p style={{ fontSize: "14px", lineHeight: "1.6" }}>
+    Not sure what maintenance your home needs?
+    Explore our free monthly and seasonal checklist
+    for UK homeowners.
+  </p>
+</Link>
+
             {/* ADD MAINTENANCE */}
 
             <Link
