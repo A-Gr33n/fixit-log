@@ -165,7 +165,7 @@ export async function POST(request) {
         error:
           "We couldn't finish deleting your account. Please try again or contact privacy@fixit-log.co.uk.",
       },
-      { status: 500 }
+            { status: 500 }
     );
   }
 }
