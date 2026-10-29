@@ -82,6 +82,20 @@ export default function Home() {
       View our free Home Maintenance Checklist
     </Link>
   </p>
+
+  <p style={{ marginTop: "10px" }}>
+    📅 Want to know when maintenance jobs are due?{" "}
+    <Link
+      href="/home-maintenance-schedule"
+      style={{
+        color: "#2563eb",
+        fontWeight: 600,
+        textDecoration: "underline",
+      }}
+    >
+      View our free Home Maintenance Schedule
+    </Link>
+  </p>
 </div>
 
       </div>
