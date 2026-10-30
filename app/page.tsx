@@ -96,6 +96,20 @@ export default function Home() {
       View our free Home Maintenance Schedule
     </Link>
   </p>
+
+    <p style={{ marginTop: "10px" }}>
+    💧 Having problems with condensation on your windows?{" "}
+    <Link
+      href="/how-to-stop-condensation-on-windows"
+      style={{
+        color: "#2563eb",
+        fontWeight: 600,
+        textDecoration: "underline",
+      }}
+    >
+      Read our free guide to stopping window condensation
+    </Link>
+  </p>
 </div>
 
       </div>
