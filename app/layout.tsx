@@ -17,12 +17,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FixIt Log | Home Maintenance & Repair Tracker",
-description:
-  "Organise your home maintenance with FixIt Log. Track repairs, manage maintenance schedules, record costs and keep receipts and documents in one place.",
+  description:
+    "Organise your home maintenance with FixIt Log. Track repairs, manage maintenance schedules, record costs and keep receipts and documents in one place.",
   verification: {
     google: "4ADXsI7fyGi_PivIZf-uo9m3Df0GrwKz-cVvO2AMZZ0",
+    other: {
+      "p:domain_verify": "9b36472e72f6a263951af96677379624",
+    },
   },
 };
+
+
 
 export default function RootLayout({
   children,
